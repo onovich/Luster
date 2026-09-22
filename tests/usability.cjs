@@ -16,7 +16,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
    await page.locator('#angle').focus();await page.keyboard.press('End');
    assert.equal(await page.evaluate(()=>foilDemo.state().angle),4);
-   assert.equal(await page.locator('#right').getAttribute('aria-pressed'),'true');
+   assert.equal(await page.locator('#angle').inputValue(),'4');
    await page.locator('#advanced summary').focus();await page.keyboard.press('Enter');
    assert.equal(await page.locator('#period').isVisible(),true);
    await page.locator('#advanced summary').click();

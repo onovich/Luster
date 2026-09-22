@@ -6,16 +6,16 @@ import {buildControls,syncControls} from './controls.js';
 import {loadNormal} from './normal-loader.js';
 import {CardMotion} from './card-motion.js';
 const $=id=>document.getElementById(id), renderers=[],pose=new PoseTween(0),errors=[],cardMotions=[];
-const artNames=['orbit','silk','facet','facet','diagonal','facet','grain','silk'];
-let showcase=true;
+const artNames=['orbit','silk','ribbon','facet','diagonal','fold','grain','wave'];
+let showcase=true,switching=false;
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
-let variant='B14',params={...presets.B14,strength:.14},mode=null,time=0,last=0,frame=0,drawCount=0,ready=false;
-function failure(error){errors.push(error.message);$('status').textContent=error.message;console.error(error);}
+let variant='B14',params={...presets.B14,strength:.3},mode=null,time=0,last=0,frame=0,drawCount=0,ready=false;
+function failure(error){delete $('status').dataset.ready;errors.push(error.message);$('status').textContent=error.message;console.error(error);}
 function draw(){
  const inspection=+$('inspect').value;
  for(let i=0;i<renderers.length;i++){const r=renderers[i];if(!r)continue;cardMotions[i]?.apply(r);r.setParameters(params);r.render({angle:pose.angle,inspect:inspection});}
  // The exhibit pose is shallow; the full optical angle still drives the shader.
- $('book').style.transform=`rotateY(${pose.angle*.2}deg)`;syncControls(params,pose.angle,variant);drawCount++;
+ $('book').style.transform=`rotateY(${pose.angle*.8}deg)`;syncControls(params,pose.angle,variant);drawCount++;
 }
 function requestTick(){if(!frame){last=performance.now();frame=requestAnimationFrame(tick);}}
 function stop(){mode=null;$('play').textContent='Auto rotate';$('dwell').textContent='Dwell';for(const id of ['play','dwell'])$(id).setAttribute('aria-pressed','false');}
@@ -30,14 +30,16 @@ function tick(ms){
 }
 function patch(values){params={...params,...values};draw();}
 async function restore(next=variant){
- if(!ready)return;
+ if(!ready||switching)return;
+ switching=true;setSchemeBusy(true);
  stop();$('status').textContent='加载…';$('variant').disabled=true;
- try{const source=await loadShader(next);for(const r of renderers)r.setVariantSource(next,source);variant=next;params={...presets[next]};$('variant').value=next;if(next==='B11'&&+$('inspect').value===5)$('inspect').value=0;draw();$('status').textContent='8 / 8 ready';}
- catch(error){failure(error);}finally{$('variant').disabled=false;}
+ try{const source=await loadShader(next);for(const r of renderers)r.setVariantSource(next,source);variant=next;params={...presets[next]};$('variant').value=next;if(next==='B11'&&+$('inspect').value===5)$('inspect').value=0;draw();$('status').textContent='8 / 8 ready';$('status').dataset.ready='true';}
+ catch(error){$('variant').value=variant;failure(error);}finally{switching=false;setSchemeBusy(false);}
 }
 buildControls($('controls'),(id,value)=>{if(id==='angle'){stop();pose.set(value);draw();}else patch({[id]:value});});
 for(const id of ['angle','light','strength'])$('primaryControls').append($(id).closest('label'));
-for(const [id,value] of [['left',-4],['center',0],['right',4]])$(id).onclick=()=>go(value);
+function setSchemeBusy(busy){for(const id of ['variant','left','center','right'])$(id).disabled=busy;}
+for(const id of ['left','center','right'])$(id).onclick=()=>restore(variant==='B14'?'B11':'B14');
 for(const id of ['play','dwell'])$(id).onclick=()=>{if(mode===id){stop();pose.set(pose.angle);draw();}else{stop();mode=id;time=id==='play'?Math.asin(pose.angle/4)*4/Math.PI:0;$(id).textContent=id==='play'?'Auto rotate':'Pause';$(id).setAttribute('aria-pressed','true');requestTick();}};
 $('enabled').oninput=()=>patch({enabled:$('enabled').checked});$('inspect').oninput=draw;
 $('variant').onchange=()=>restore($('variant').value);$('restore').onclick=()=>restore();
@@ -50,7 +52,9 @@ function setView(){for(const motion of cardMotions)motion?.to(false);requestTick
 for(const value of ['book','material'])$('view-'+value).onclick=()=>{$('view').value=value;setView();};
 $('view').onchange=setView;$('pocket').onchange=setView;
 async function init(){
- $('variant').disabled=true;$('restore').disabled=true;
+ stop();cancelAnimationFrame(frame);frame=0;
+ ready=false;errors.length=0;setSchemeBusy(true);$('restore').disabled=true;$('retry').hidden=true;delete $('status').dataset.ready;
+ for(const renderer of renderers)renderer?.dispose();renderers.length=0;cardMotions.length=0;$('pockets').replaceChildren();$('pocket').replaceChildren();
  syncControls(params,pose.angle,variant);
  const shader=loadShader(variant);
  const sleeve=new Image();sleeve.src=new URL('./assets/images/sleeve.svg',import.meta.url);
@@ -71,7 +75,7 @@ async function init(){
    try{
     await Promise.all([background.decode(),shader,sleeveReady]);
     const normal=await loadNormal(i);
-    renderer=await FoilRenderer.create(canvas,{normal,background});
+    renderer=await FoilRenderer.create(canvas,{variant,normal,background});
     {const content=background.cloneNode();content.className='card-content';slot.insertBefore(content,canvas);cardMotions[i]=new CardMotion(slot,background,sleeve);}
     renderer.setParameters(params);renderer.render({angle:pose.angle,inspect:+$('inspect').value});
     renderers[i]=renderer;canvas.hidden=false;background.hidden=true;
@@ -84,12 +88,13 @@ async function init(){
  $('status').textContent='材质加载 0 / 8';
  await Promise.all(jobs);
  ready=completed===8;
- if(ready){if($('view').value==='book'&&!reducedMotion.matches){cardMotions[2].to(true);requestTick();}draw();$('status').textContent='8 / 8 ready';$('status').dataset.ready='true';$('variant').disabled=false;$('restore').disabled=false;}
- else $('status').textContent=`材质已加载 ${completed} / 8，请刷新重试`;
+ if(ready){if($('view').value==='book'&&!reducedMotion.matches){cardMotions[2].to(true);requestTick();}draw();$('status').textContent='8 / 8 ready';$('status').dataset.ready='true';setSchemeBusy(false);$('restore').disabled=false;}
+ else {$('status').textContent=`材质已加载 ${completed} / 8 · ${errors[0]||'加载失败'}，请重试`;$('retry').hidden=false;}
 }
 // Small inspectable demo API, also used by regression tests. It is not the renderer API.
 window.foilDemo={get renderers(){return renderers;},state:()=>({ready,variant,parameters:{...params},angle:pose.angle,target:pose.target,active:pose.active,cardOffsets:cardMotions.map(m=>m.offset),drawCount,errors,glErrors:renderers.filter(Boolean).map(r=>r.gl.getError())}),setAngle(angle){stop();pose.set(angle);draw();},go,restore,patch,capture(){draw();return renderers.filter(Boolean).map(r=>r.canvas.toDataURL());}};
 window.addEventListener('pagehide',()=>{cancelAnimationFrame(frame);for(const r of renderers)r?.dispose();});
 window.addEventListener('webglcontextlost',e=>{e.preventDefault();stop();cancelAnimationFrame(frame);failure(new Error('WebGL 已中断，请刷新'));},true);
 window.addEventListener('keydown',event=>{if(event.key==='Escape'&&$('advanced').open){$('advanced').open=false;$('advanced').querySelector('summary').focus();}});
+$('retry').onclick=()=>init().catch(failure);
 init().catch(failure);

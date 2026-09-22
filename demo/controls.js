@@ -21,7 +21,7 @@ export function syncControls(parameters,angle,variant) {
   if(input.type==='range')input.style.setProperty('--fill',`${(value-input.min)/(input.max-input.min)*100}%`);
   input.disabled=variant==='B11'&&['richness','bend'].includes(id);
  }
- for(const [id,target] of [['left',-4],['center',0],['right',4]])document.getElementById(id).setAttribute('aria-pressed',String(Math.abs(angle-target)<.001));
+ const dial=document.getElementById('center');dial.dataset.variant=variant;dial.setAttribute('aria-label',`当前方案 ${variant}，点击切换`);dial.title=`${variant} · Switch material scheme`;document.getElementById('schemeName').textContent=variant;
  document.getElementById('enabled').checked=parameters.enabled;
  for(const id of ['uniformStructure','restoreStructure']) document.getElementById(id).disabled=variant==='B11';
  document.querySelector('#inspect option[value="5"]').disabled=variant==='B11';

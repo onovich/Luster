@@ -1,9 +1,10 @@
+import {fetchResource} from './fetch-resource.js';
 export const vertexShader = 'attribute vec2 p;varying vec2 uv;void main(){uv=p*.5+.5;gl_Position=vec4(p,0,1);}';
 const shaderSources=new Map();
 export async function loadShader(variant='B14') {
   if (!['B11','B14'].includes(variant)) throw new RangeError('Unknown material variant');
   if (!shaderSources.has(variant)) {
-    const pending=fetch(new URL(`../shaders/${variant}.frag`,import.meta.url)).then(response=>{
+    const pending=fetchResource(new URL(`../shaders/${variant}.frag`,import.meta.url)).then(response=>{
       if (!response.ok) throw new Error(`Shader ${response.status}`);
       return response.text();
     }).catch(error=>{shaderSources.delete(variant);throw error;});

@@ -1,8 +1,9 @@
+import {fetchResource} from '../src/webgl/fetch-resource.js';
 // Lossless byte prediction, followed by gzip. The decoded data is still XY16.
 export async function loadNormal(index) {
   const packed=typeof DecompressionStream==='function';
   const suffix=packed?'delta.gz':'rgba';
-  const response=await fetch(new URL(`./assets/normals/normal-${index}.${suffix}`,import.meta.url));
+  const response=await fetchResource(new URL(`./assets/normals/normal-${index}.${suffix}`,import.meta.url));
   if(!response.ok)throw new Error(`法线 ${index+1} 加载失败 (${response.status})`);
   const body=packed?new Response(response.body.pipeThrough(new DecompressionStream('gzip'))):response;
   const data=new Uint8Array(await body.arrayBuffer());

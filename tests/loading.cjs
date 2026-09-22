@@ -31,7 +31,7 @@ const assert=require('node:assert/strict');
   const failed=await browser.newPage();
   await failed.route('**/normal-6.delta.gz',route=>route.abort());
   await failed.goto('http://127.0.0.1:8798');
-  await failed.waitForFunction(()=>document.getElementById('status').textContent.includes('刷新重试'));
+  await failed.waitForFunction(()=>document.getElementById('status').textContent.includes('请重试'));
   assert.equal(await failed.locator('#slot6 .base-preview').isVisible(),true);
   assert.equal(await failed.locator('#pocket6').isVisible(),false);
   assert.equal(await failed.locator('#pocket0').isVisible(),true);

@@ -20,8 +20,8 @@ for i in range(8):
 for i in range(3):
  patch=Image.open(root/f'demo/assets/images/base-{i}.png').convert('RGB').crop((210,5,234,34))
  assert not any(r>g*1.3 and r>b*1.3 for r,g,b in zip(*[iter(patch.tobytes())]*3)),f'red dot remains in {i}'
-for name in ['book-exhibit','exhibit-background','art-orbit','art-silk','art-facet','art-grain','art-diagonal','card-circle', 'card-semicircle', 'card-diagonal', 'book-cobalt', 'book-cover', 'book-pages', 'book-shadow', *[f'book-ring-{i}' for i in range(4)], 'base-0', 'base-1', 'base-2', 'base-3']:
+for name in ['book-exhibit','exhibit-background','art-ribbon','art-fold','art-wave','art-orbit','art-silk','art-facet','art-grain','art-diagonal','card-circle', 'card-semicircle', 'card-diagonal', 'book-cobalt', 'book-cover', 'book-pages', 'book-shadow', *[f'book-ring-{i}' for i in range(4)], 'base-0', 'base-1', 'base-2', 'base-3']:
  original=Image.open(root/f'demo/assets/images/{name}.png').convert('RGBA')
  webp=Image.open(root/f'demo/assets/images/{name}.webp').convert('RGBA')
  assert original.size==webp.size and original.tobytes()==webp.tobytes(),f'WebP pixels: {name}'
-print('PASS: 9 reference hashes, 8 atlas tiles/orientations, 8 lossless packed normals, 22 lossless WebP images, 3 red-dot patches.')
+print('PASS: 9 reference hashes, 8 atlas tiles/orientations, 8 lossless packed normals, 25 lossless WebP images, 3 red-dot patches.')
