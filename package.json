@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
+    "build": "node tools/build-pages.mjs",
     "start": "python -m http.server 8798 --bind 127.0.0.1",
     "test": "node --test tests/core.test.js tests/privacy.test.js",
     "test:browser": "node tests/browser.cjs",

@@ -4,6 +4,8 @@
 
 基于 WebGL 的通用覆膜材质，让图片呈现随角度变化的镭射反光。
 
+[在线演示](https://luster.onovich.com/)
+
 ![Luster 镭射覆膜材质](docs/social-preview.png)
 
 ## 运行演示

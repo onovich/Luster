@@ -2,6 +2,7 @@
 .test-output/
 __pycache__/
 node_modules/
+dist/
 *.log
 .env
 .env.*

@@ -22,6 +22,7 @@ flowchart LR
 | Path | Responsibility |
 | --- | --- |
 | `index.html` | Static demo entry point |
+| `.github/workflows/` | Tests and Actions-based Pages deployment |
 | `src/index.js` | Public imports: renderer, presets, parameter validation and optional pose tween |
 | `src/core/` | Immutable presets, units, validation and pure interruptible quintic interpolation |
 | `src/shaders/` | Spectral equations and composition; no business state or time-driven texture motion |
@@ -31,7 +32,7 @@ flowchart LR
 | `demo/assets/normals/` | Packed normal bytes, independent of image decoding |
 | `tests/fixtures/approved/` | Public optical baselines, presets, atlas and minimal reference runners |
 | `tests/support/` | Configurable browser launch support |
-| `tools/` | Reproducible visual capture tooling |
+| `tools/` | Visual capture and allowlisted Pages artifact generation |
 | `docs/screenshots/` | Selected runtime evidence |
 | `docs/validation/` | Small checked-in verification reports |
 | `docs/` | Integration, architecture, privacy and editable cover |
@@ -58,3 +59,5 @@ Both the public fixtures and the local originals were checked against the curren
 2. Add another renderer backend only when needed; share parameter semantics and normal contracts, and retain backend-specific shaders and resources.
 3. For many instances, introduce a shared-context renderer with atlas/viewport management after profiling. Eight demo contexts are not a production scaling strategy.
 4. Add packaging, TypeScript declarations or a build system when an actual distribution requirement justifies them. They are not current features.
+
+Deployment setup: [GitHub Pages and custom domain](deployment.md).

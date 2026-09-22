@@ -4,6 +4,8 @@
 
 A reusable WebGL foil material that adds angle-dependent iridescent highlights to images.
 
+[Live demo](https://luster.onovich.com/)
+
 ![Luster spectral foil material](docs/social-preview.png)
 
 ## Try it
