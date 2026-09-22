@@ -20,6 +20,7 @@
     "assets:images": "python tools/pack-images.py",
     "test:artwork": "node tests/artwork.cjs",
     "test:usability": "node tests/usability.cjs",
+    "test:camera": "node tests/camera.cjs",
     "test:hover": "node tests/hover.cjs",
     "test:foil-toggle": "node tests/foil-toggle.cjs",
     "test:layers": "node tests/layers.cjs",

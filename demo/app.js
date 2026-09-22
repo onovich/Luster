@@ -76,7 +76,15 @@ $('stage').onpointerleave=()=>{hoverCard();if(!mode&&renderers.some(Boolean))go(
 window.addEventListener('blur',()=>hoverCard());
 document.addEventListener('visibilitychange',()=>{if(document.hidden)hoverCard();});
 window.addEventListener('pointercancel',()=>hoverCard());
-function setView(){for(const motion of cardMotions)motion?.to(false);requestTick();const material=$('view').value==='material';$('gestureHint').textContent=material?'Drag Angle to tilt':'Move across the album to tilt · Hover a card to lift';$('book').classList.toggle('material',material);for(const value of ['book','material'])$('view-'+value).setAttribute('aria-pressed',String($('view').value===value));$('materialGallery').hidden=!material;if(material)$('materialGallery').prepend($('albumLoading'));else $('gestureHint').before($('albumLoading'));gallery.setSelected(+$('pocket').value);$('surfaceName').textContent=cardSurfaces[+$('pocket').value]?.material||'';$('pocketLabel').hidden=true;for(let i=0;i<8;i++)$(`slot${i}`).hidden=material&&i!==+$('pocket').value;}
+function updateCamera(){
+ const stage=$('stage'),book=$('book');
+ if($('view').value==='material'){
+  // Preserve Album's object-width / camera-distance ratio for the single card.
+  stage.style.perspective=`${2600*book.offsetWidth/stage.clientWidth}px`;
+  stage.style.perspectiveOrigin=`${book.offsetLeft+book.offsetWidth/2}px ${book.offsetTop+book.offsetHeight/2}px`;
+ }else{stage.style.removeProperty('perspective');stage.style.removeProperty('perspective-origin');}
+}
+function setView(){for(const motion of cardMotions)motion?.to(false);requestTick();const material=$('view').value==='material';$('gestureHint').textContent=material?'Drag Angle to tilt':'Move across the album to tilt · Hover a card to lift';$('book').classList.toggle('material',material);for(const value of ['book','material'])$('view-'+value).setAttribute('aria-pressed',String($('view').value===value));$('materialGallery').hidden=!material;if(material)$('materialGallery').prepend($('albumLoading'));else $('gestureHint').before($('albumLoading'));gallery.setSelected(+$('pocket').value);$('surfaceName').textContent=cardSurfaces[+$('pocket').value]?.material||'';$('pocketLabel').hidden=true;for(let i=0;i<8;i++)$(`slot${i}`).hidden=material&&i!==+$('pocket').value;updateCamera();}
 function selectMaterial(index){const previous=+$('pocket').value;$('pocket').value=String(index);setView();if(previous!==index&&!reducedMotion.matches)$(`slot${index}`).animate([{opacity:0,translate:`${index>previous?12:-12}px 0`},{opacity:1,translate:'0 0'}],{duration:220,easing:'ease-out'});}
 let requestedView=null,viewTask=null;
 function changeView(next){
@@ -97,7 +105,7 @@ function changeView(next){
  return viewTask;
 }
 for(const value of ['book','material'])$('view-'+value).onclick=()=>changeView(value).catch(failure);
-window.addEventListener('resize',()=>gallery.setSelected(+$('pocket').value));
+window.addEventListener('resize',()=>{gallery.setSelected(+$('pocket').value);updateCamera();});
 $('filmLayer').onclick=()=>{
  filmEnabled=!filmEnabled;$('filmLayer').setAttribute('aria-checked',String(filmEnabled));
  if(reducedMotion.matches){filmTween=null;filmWeight=Number(filmEnabled);for(const r of renderers)r?.setLayers({film:filmWeight});draw();}
