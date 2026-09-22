@@ -67,3 +67,11 @@ body[data-load=loading] #materialGallery #materialIndex{display:none}
 .preset-popover .scheme-options button{justify-content:center;min-height:44px;padding:6px;border-radius:22px;font-size:12px}
 .preset-popover .scheme-options button[aria-pressed=true]{background:var(--paper);color:#153aa8}
 .preset-popover{max-height:70svh;overflow-y:auto}
+
+.pocket canvas.layered-card{position:absolute;inset:auto 0 0;width:100%;height:132.116788%;border-radius:0}
+
+.surface-info{display:flex;align-items:center;justify-content:center;gap:20px;margin:-6px 0 8px;font-size:11px;color:#d1dbf2}
+.surface-info [role=group]{display:flex;gap:6px}.surface-info button{min-height:44px;padding:4px 12px;border:1px solid #b4c4e24d;border-radius:24px;background:transparent;font-size:11px;opacity:.55}
+.surface-info button[aria-pressed=true]{opacity:1;background:#ecf0ff16;border-color:#f5ecd996}
+@media(max-width:600px){.surface-info{gap:8px;flex-wrap:wrap}.surface-info span{width:100%;text-align:center}}
+@media(min-width:601px){.surface-info{position:absolute;bottom:calc(100% + 4px);left:0;right:0;margin:0}}

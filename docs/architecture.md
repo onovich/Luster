@@ -61,3 +61,7 @@ Both the public fixtures and the local originals were checked against the curren
 4. Add packaging, TypeScript declarations or a build system when an actual distribution requirement justifies them. They are not current features.
 
 Deployment setup: [GitHub Pages and custom domain](deployment.md).
+
+## Card substrate and sleeve
+
+The demo uses the optional `LayeredRenderer` for independent card and film responses in a single fragment pass. See [card materials](card-materials.md) for the eight material definitions, map contract, composition and approximation limits. `FoilRenderer` retains its existing API and optical diagnostics.

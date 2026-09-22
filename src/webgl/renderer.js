@@ -13,9 +13,9 @@ export class FoilRenderer {
       return renderer;
     } catch(error) { renderer.dispose(); throw error; }
   }
-  constructor(canvas) {
+  constructor(canvas,{alpha=false}={}) {
     this.canvas=canvas;
-    const gl=this.gl=canvas.getContext('webgl',{preserveDrawingBuffer:true,alpha:false});
+    const gl=this.gl=canvas.getContext('webgl',{preserveDrawingBuffer:true,alpha});
     if (!gl || !gl.getExtension('OES_standard_derivatives')) throw new Error('WebGL with derivatives is required');
     this.buffer=gl.createBuffer(); this.normalTexture=gl.createTexture(); this.baseTexture=gl.createTexture();
     gl.bindBuffer(gl.ARRAY_BUFFER,this.buffer);

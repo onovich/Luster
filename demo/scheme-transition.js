@@ -1,7 +1,7 @@
 /** Keep the previous rendered frame visible while the new material fades in. */
 export function captureTransition(renderers) {
  const layers=renderers.filter(Boolean).map(renderer=>{
-  const layer=document.createElement('canvas');layer.className='scheme-transition';
+  const layer=document.createElement('canvas');layer.className='scheme-transition'+(renderer.canvas.classList.contains('layered-card')?' layered-card':'');
   layer.width=renderer.canvas.width;layer.height=renderer.canvas.height;
   layer.getContext('2d').drawImage(renderer.canvas,0,0);
   renderer.canvas.after(layer);return layer;
