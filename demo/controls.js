@@ -1,6 +1,6 @@
 export const controlSpecs=[
- ['angle','角度',-4,4,.01,'°'],['light','光向',3,35,.01,'°'],['period','间距',[.7,.8,1,1.5,2,2.5,3],'μm'],['spread','光源半角',[0,.4,1.2],'°'],
- ['strength','强度',.05,.8,.01,''],['flatFloor','平整区',0,1,.01,''],['localBoost','局部彩光',0,4,.05,''],['threshold','集中',.001,.06,.001,''],['softness','柔和',.002,.06,.001,''],['whiteGain','白光',0,4,.05,''],['richness','褶皱关联',0,35,.5,''],['bend','响应宽度',.09,.8,.01,'']
+ ['angle','Angle',-4,4,.01,'°'],['light','Light',3,35,.01,'°'],['period','间距',[.7,.8,1,1.5,2,2.5,3],'μm'],['spread','光源半角',[0,.4,1.2],'°'],
+ ['strength','Intensity',.05,.8,.01,''],['flatFloor','平整区',0,1,.01,''],['localBoost','局部彩光',0,4,.05,''],['threshold','集中',.001,.06,.001,''],['softness','柔和',.002,.06,.001,''],['whiteGain','白光',0,4,.05,''],['richness','褶皱关联',0,35,.5,''],['bend','响应宽度',.09,.8,.01,'']
 ];
 export function buildControls(container,onChange) {
  for(const [id,title,min,max,step,unit] of controlSpecs) {
@@ -18,6 +18,7 @@ export function syncControls(parameters,angle,variant) {
   input.value=value??(id==='bend'?.09:0);
   const unit=Array.isArray(min)?max:controlSpecs.find(s=>s[0]===id)[5];
   document.getElementById(id+'Value').value=(id==='angle'?angle.toFixed(2):input.value)+(unit||'');
+  if(input.type==='range')input.style.setProperty('--fill',`${(value-input.min)/(input.max-input.min)*100}%`);
   input.disabled=variant==='B11'&&['richness','bend'].includes(id);
  }
  for(const [id,target] of [['left',-4],['center',0],['right',4]])document.getElementById(id).setAttribute('aria-pressed',String(Math.abs(angle-target)<.001));

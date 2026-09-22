@@ -1,7 +1,7 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Luster</title><link rel="icon" href="data:,"><link rel="stylesheet" href="./demo/style.css"><link rel="modulepreload" href="./demo/app.js"><link rel="preload" href="./demo/assets/images/base-0.webp" as="image"><link rel="preload" href="./src/shaders/B14.frag" as="fetch" crossorigin></head>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Luster</title><link rel="icon" href="data:,"><link rel="stylesheet" href="./demo/style.css"><link rel="modulepreload" href="./demo/app.js"><link rel="preload" href="./demo/assets/images/card-circle.webp" as="image"><link rel="preload" href="./src/shaders/B14.frag" as="fetch" crossorigin></head>
 <body><main>
-<header><div class="identity"><h1>Luster</h1><p>镭射覆膜 · 交互实验</p></div><nav aria-label="项目链接"><a href="https://github.com/onovich/Luster/blob/main/docs/guide.md">Guide</a><a href="https://github.com/onovich/Luster">GitHub ↗</a></nav></header>
+<header><div class="identity"><h1>Luster</h1><p>Interactive foil study</p></div><nav aria-label="项目链接"><a href="https://github.com/onovich/Luster/blob/main/docs/guide.md">Guide</a><a href="https://github.com/onovich/Luster">GitHub ↗</a></nav></header>
 <div id="stage" aria-label="左右移动倾斜书本"><div id="book">
 <img class="book-art book-cobalt" src="./demo/assets/images/book-cobalt.webp" alt="钴蓝绒面卡册，象牙白纸页与四枚金属环" fetchpriority="high" decoding="async">
 <div id="pockets"></div></div></div>
@@ -9,17 +9,17 @@
 <p id="gestureHint" class="hint">左右移动倾斜卡册 · 悬停卡牌向上抽出</p>
 <section class="console" aria-label="演示控制">
 <div class="toolbar">
-<label>视图<select id="view"><option value="book">卡册</option><option value="material">材质</option></select></label>
-<label id="pocketLabel" hidden>样本<select id="pocket"></select></label>
-<label>方案<select id="variant"><option>B14</option><option>B11</option></select></label>
+<div class="view-switch" role="group" aria-label="View"><button id="view-book" aria-pressed="true">Album</button><button id="view-material" aria-pressed="false">Material</button></div><select id="view" hidden aria-label="View"><option value="book">Album</option><option value="material">Material</option></select>
+<label id="pocketLabel" hidden>Sample<select id="pocket"></select></label>
+<label class="preset">Preset<select id="variant"><option>B14</option><option>B11</option></select></label>
 <div class="angle-buttons" role="group" aria-label="倾斜角度"><button id="left">−4°</button><button id="center">0°</button><button id="right">+4°</button></div>
-<button id="play" aria-pressed="false">自动往返</button><button id="restore">恢复预设</button>
-<label class="reflection"><input id="enabled" type="checkbox" checked>反光</label>
+<button id="play" aria-pressed="false">Auto rotate</button><button id="restore">Reset</button>
+<label class="reflection">Reflection on<input id="enabled" type="checkbox" role="switch" checked></label>
 </div>
 <section class="controls primary-controls" aria-label="常用参数" id="primaryControls"></section>
-<details id="advanced"><summary>高级设置<span>光谱、褶皱与对照</span></summary>
+<details id="advanced"><summary>Advanced<span aria-hidden="true" class="chevron"></span></summary>
 <section class="controls" aria-label="材质参数" id="controls"></section>
 <div class="toolbar comparison" aria-label="对照"><label>检查<select id="inspect"><option value="0">完整</option><option value="1">反光</option><option value="3">法线</option><option value="4">范围</option><option value="5">间距</option></select></label><button id="dwell" aria-pressed="false">停留循环</button><button id="resetLocal">恢复范围</button><button id="uniform">均匀覆膜</button><button id="uniformStructure">关闭关联</button><button id="restoreStructure">恢复关联</button></div>
 </details></section>
-<footer><span>实时光影，随角度变化。</span><output id="status" role="status">材质加载 0 / 8</output></footer>
+<footer><output id="status" role="status">材质加载 0 / 8</output></footer>
 </main><script type="module" src="./demo/app.js"></script></body></html>

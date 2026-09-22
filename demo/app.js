@@ -12,10 +12,11 @@ function failure(error){errors.push(error.message);$('status').textContent=error
 function draw(){
  const inspection=+$('inspect').value;
  for(let i=0;i<renderers.length;i++){const r=renderers[i];if(!r)continue;cardMotions[i]?.apply(r);r.setParameters(params);r.render({angle:pose.angle,inspect:inspection});}
- $('book').style.transform=`rotateY(${pose.angle}deg)`;syncControls(params,pose.angle,variant);drawCount++;
+ // The exhibit pose is shallow; the full optical angle still drives the shader.
+ $('book').style.transform=`rotateX(1deg) rotateY(${pose.angle*.35}deg)`;syncControls(params,pose.angle,variant);drawCount++;
 }
 function requestTick(){if(!frame){last=performance.now();frame=requestAnimationFrame(tick);}}
-function stop(){mode=null;$('play').textContent='自动往返';$('dwell').textContent='停留循环';for(const id of ['play','dwell'])$(id).setAttribute('aria-pressed','false');}
+function stop(){mode=null;$('play').textContent='Auto rotate';$('dwell').textContent='Dwell';for(const id of ['play','dwell'])$(id).setAttribute('aria-pressed','false');}
 function go(angle){stop();pose.to(angle);requestTick();}
 function tick(ms){
  frame=0;const dt=Math.max(0,Math.min((ms-last)/1000,.1));last=ms;
@@ -29,13 +30,13 @@ function patch(values){params={...params,...values};draw();}
 async function restore(next=variant){
  if(!ready)return;
  stop();$('status').textContent='加载…';$('variant').disabled=true;
- try{const source=await loadShader(next);for(const r of renderers)r.setVariantSource(next,source);variant=next;params={...presets[next]};$('variant').value=next;if(next==='B11'&&+$('inspect').value===5)$('inspect').value=0;draw();$('status').textContent='8 / 8';}
+ try{const source=await loadShader(next);for(const r of renderers)r.setVariantSource(next,source);variant=next;params={...presets[next]};$('variant').value=next;if(next==='B11'&&+$('inspect').value===5)$('inspect').value=0;draw();$('status').textContent='8 / 8 ready';}
  catch(error){failure(error);}finally{$('variant').disabled=false;}
 }
 buildControls($('controls'),(id,value)=>{if(id==='angle'){stop();pose.set(value);draw();}else patch({[id]:value});});
 for(const id of ['angle','light','strength'])$('primaryControls').append($(id).closest('label'));
 for(const [id,value] of [['left',-4],['center',0],['right',4]])$(id).onclick=()=>go(value);
-for(const id of ['play','dwell'])$(id).onclick=()=>{if(mode===id){stop();pose.set(pose.angle);draw();}else{stop();mode=id;time=id==='play'?Math.asin(pose.angle/4)*4/Math.PI:0;$(id).textContent='暂停';$(id).setAttribute('aria-pressed','true');requestTick();}};
+for(const id of ['play','dwell'])$(id).onclick=()=>{if(mode===id){stop();pose.set(pose.angle);draw();}else{stop();mode=id;time=id==='play'?Math.asin(pose.angle/4)*4/Math.PI:0;$(id).textContent='Pause';$(id).setAttribute('aria-pressed','true');requestTick();}};
 $('enabled').oninput=()=>patch({enabled:$('enabled').checked});$('inspect').oninput=draw;
 $('variant').onchange=()=>restore($('variant').value);$('restore').onclick=()=>restore();
 $('resetLocal').onclick=()=>patch(Object.fromEntries(['flatFloor','localBoost','threshold','softness','whiteGain'].map(k=>[k,presets[variant][k]])));
@@ -43,23 +44,24 @@ $('uniform').onclick=()=>patch({flatFloor:1,localBoost:1,whiteGain:1});
 $('uniformStructure').onclick=()=>patch({richness:0});$('restoreStructure').onclick=()=>patch({richness:22,bend:.45});
 $('stage').onpointermove=e=>{if(mode||!renderers.some(Boolean)||reducedMotion.matches)return;const rect=$('stage').getBoundingClientRect(),x=e.clientX-rect.left-rect.width/2,width=$('book').offsetWidth;const next=Math.abs(x)>width/2?0:Math.abs(x)<3*width/1190?pose.target:x<0?-4:4;if(pose.target!==next)go(next);};
 $('stage').onpointerleave=()=>{if(!mode&&renderers.some(Boolean))go(0);};
-function setView(){for(const motion of cardMotions)motion?.to(false);requestTick();const material=$('view').value==='material';$('gestureHint').textContent=material?'拖动角度滑块，观察镭射反光的变化':'左右移动倾斜卡册 · 悬停卡牌向上抽出';$('book').classList.toggle('material',material);$('pocketLabel').hidden=!material;for(let i=0;i<8;i++)$(`slot${i}`).hidden=material&&i!==+$('pocket').value;}
+function setView(){for(const motion of cardMotions)motion?.to(false);requestTick();const material=$('view').value==='material';$('gestureHint').textContent=material?'Drag Angle to tilt':'Move across the album to tilt · Hover a card to lift';$('book').classList.toggle('material',material);for(const value of ['book','material'])$('view-'+value).setAttribute('aria-pressed',String($('view').value===value));$('pocketLabel').hidden=!material;for(let i=0;i<8;i++)$(`slot${i}`).hidden=material&&i!==+$('pocket').value;}
+for(const value of ['book','material'])$('view-'+value).onclick=()=>{$('view').value=value;setView();};
 $('view').onchange=setView;$('pocket').onchange=setView;
 async function init(){
  $('variant').disabled=true;$('restore').disabled=true;
  syncControls(params,pose.angle,variant);
  const shader=loadShader(variant);
- const sleeve=new Image();sleeve.src=new URL('./assets/images/base-3.webp',import.meta.url);
+ const sleeve=new Image();sleeve.src=new URL('./assets/images/sleeve.svg',import.meta.url);
  const sleeveReady=sleeve.decode();
  let completed=0;
  const jobs=[];
  // Attach every base image immediately; reveal each canvas only after its first draw.
  for(let i=0;i<8;i++){
   const slot=document.createElement('div');slot.id=`slot${i}`;slot.className='pocket '+(i<3?'card':'empty');
-  slot.style.left=([220,474,838,1092][i%4]/1536*100)+'%';slot.style.top=(((i<4?232:528)-60)/900*100)+'%';
+  slot.style.left=([210,474,834,1098][i%4]/1536*100)+'%';slot.style.top=(((i<4?160:514)-60)/900*100)+'%';
   if(i<3){slot.setAttribute('aria-label',`Material sample ${i+1}`);slot.onpointerenter=()=>{if(!reducedMotion.matches&&$('view').value==='book'){cardMotions[i]?.to(true);requestTick();}};slot.onpointerleave=()=>{cardMotions[i]?.to(false);requestTick();};}
   const background=new Image();background.alt='';background.className='base-preview';
-  background.src=new URL(`./assets/images/base-${i<3?i:3}.webp`,import.meta.url);
+  background.src=new URL(`./assets/images/${i<3?['card-circle.webp','card-semicircle.webp','card-diagonal.webp'][i]:'sleeve.svg'}`,import.meta.url);
   const canvas=document.createElement('canvas');canvas.id=`pocket${i}`;canvas.hidden=true;
   slot.append(background,canvas);$('pockets').append(slot);$('pocket').add(new Option(String(i+1),i));
   jobs.push((async()=>{
@@ -80,7 +82,7 @@ async function init(){
  $('status').textContent='材质加载 0 / 8';
  await Promise.all(jobs);
  ready=completed===8;
- if(ready){draw();$('status').textContent='8 / 8';$('variant').disabled=false;$('restore').disabled=false;}
+ if(ready){draw();$('status').textContent='8 / 8 ready';$('variant').disabled=false;$('restore').disabled=false;}
  else $('status').textContent=`材质已加载 ${completed} / 8，请刷新重试`;
 }
 // Small inspectable demo API, also used by regression tests. It is not the renderer API.

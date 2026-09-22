@@ -25,7 +25,8 @@ export class CardMotion {
    const ctx=this.context;
    ctx.clearRect(0,0,244,274);ctx.drawImage(this.sleeve,0,0,244,274);
    // Trim only the baked sleeve rim from the example; it must not slide with the card.
-   ctx.drawImage(this.image,8,8,228,258,8,8-this.offset,228,258);
+   const w=this.image.naturalWidth,h=this.image.naturalHeight;
+   ctx.drawImage(this.image,w*8/244,h*8/274,w*228/244,h*258/274,8,8-this.offset,228,258);
    renderer.setBackground(this.background);
   }
   this.previous=this.offset;

@@ -8,7 +8,7 @@ const assert=require('node:assert/strict');
   await page.waitForFunction(()=>foilDemo.state().ready);
   const comparisons=await page.evaluate(async()=>{
    const originals=await Promise.all([0,1,2,3].map(async i=>{
-    const image=new Image();image.src=`./demo/assets/images/base-${i}.png`;await image.decode();return image;
+    const image=new Image();image.src=`./demo/assets/images/${['card-circle.png','card-semicircle.png','card-diagonal.png','sleeve.svg'][i]}`;await image.decode();return image;
    }));
    const rows=[];
    for(const variant of ['B11','B14']){
