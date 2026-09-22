@@ -86,3 +86,7 @@ This measures the additional improvement after the earlier 13.0 → 4.6 s change
 The cobalt desktop concept was refined to isolate the material against neutral paper and group controls below the album. The mobile layout defaults to an enlarged material view. The mockups establish visual direction; actual checks use the running page.
 
 `npm run test:usability` verifies 320/390/768/1440 px widths, mobile defaults, visible 44 px controls, keyboard range inputs and disclosure, playback/angle state labels, and absence of horizontal overflow or page errors. The existing optical and full-composite references remain unchanged.
+
+## Original concept fidelity
+
+The original cobalt artboard is the visual reference: 1536 × 1024, full studio backdrop, large condensed title, binder at its original image coordinates and one lightweight control row. The camera pose is embedded in the generated binder art; pointer tilt is a small additional presentation rotation. All eight printed cards lift independently, with a three-degree rotation. Advanced settings open above the controls and close with Escape. Browser checks cover pointer departure from the physical binder region as well as responsive overflow.
