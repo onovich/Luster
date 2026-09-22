@@ -12,7 +12,7 @@ import {CardMotion} from './card-motion.js';
 const $=id=>document.getElementById(id), renderers=[],pose=new PoseTween(0),errors=[],cardMotions=[];
 const artNames=['orbit','silk','ribbon','facet','diagonal','fold','grain','wave'];
 const gallery=createMaterialGallery($('materialGallery'),artNames,selectMaterial);
-let showcase=true,switching=false,effect='original',effectTween=null;
+let switching=false,effect='original',effectTween=null;
 let filmEnabled=true,filmWeight=1,filmTween=null;
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
 let variant='B14',params={...presets.B14,strength:.3},mode=null,time=0,last=0,frame=0,drawCount=0,ready=false;
@@ -70,8 +70,12 @@ $('variant').onchange=()=>restore($('variant').value);$('restore').onclick=()=>r
 $('resetLocal').onclick=()=>patch(Object.fromEntries(['flatFloor','localBoost','threshold','softness','whiteGain'].map(k=>[k,presets[variant][k]])));
 $('uniform').onclick=()=>patch({flatFloor:1,localBoost:1,whiteGain:1});
 $('uniformStructure').onclick=()=>patch({richness:0});$('restoreStructure').onclick=()=>patch({richness:22,bend:.45});
-$('stage').onpointermove=e=>{if(showcase){showcase=false;cardMotions[2]?.to(false);requestTick();}if(mode||!renderers.some(Boolean)||reducedMotion.matches)return;const rect=$('stage').getBoundingClientRect(),x=e.clientX-rect.left-rect.width/2,width=$('book').offsetWidth,material=$('view').value==='material',y=e.clientY-rect.top,outsideY=!material&&(y<rect.height*.17||y>rect.height*.83);const next=outsideY||Math.abs(x)>width*(material?.5:.44)?0:Math.abs(x)<3*width/1190?pose.target:x<0?-4:4;if(pose.target!==next)go(next);};
-$('stage').onpointerleave=()=>{if(!mode&&renderers.some(Boolean))go(0);};
+$('stage').onpointermove=e=>{if(mode||!renderers.some(Boolean)||reducedMotion.matches)return;const rect=$('stage').getBoundingClientRect(),x=e.clientX-rect.left-rect.width/2,width=$('book').offsetWidth,material=$('view').value==='material',y=e.clientY-rect.top,outsideY=!material&&(y<rect.height*.17||y>rect.height*.83);const next=outsideY||Math.abs(x)>width*(material?.5:.44)?0:Math.abs(x)<3*width/1190?pose.target:x<0?-4:4;if(pose.target!==next)go(next);};
+function hoverCard(index=-1){for(let i=0;i<cardMotions.length;i++)cardMotions[i]?.to(i===index);requestTick();}
+$('stage').onpointerleave=()=>{hoverCard();if(!mode&&renderers.some(Boolean))go(0);};
+window.addEventListener('blur',()=>hoverCard());
+document.addEventListener('visibilitychange',()=>{if(document.hidden)hoverCard();});
+window.addEventListener('pointercancel',()=>hoverCard());
 function setView(){for(const motion of cardMotions)motion?.to(false);requestTick();const material=$('view').value==='material';$('gestureHint').textContent=material?'Drag Angle to tilt':'Move across the album to tilt · Hover a card to lift';$('book').classList.toggle('material',material);for(const value of ['book','material'])$('view-'+value).setAttribute('aria-pressed',String($('view').value===value));$('materialGallery').hidden=!material;if(material)$('materialGallery').prepend($('albumLoading'));else $('gestureHint').before($('albumLoading'));gallery.setSelected(+$('pocket').value);$('surfaceName').textContent=cardSurfaces[+$('pocket').value]?.material||'';$('pocketLabel').hidden=true;for(let i=0;i<8;i++)$(`slot${i}`).hidden=material&&i!==+$('pocket').value;}
 function selectMaterial(index){const previous=+$('pocket').value;$('pocket').value=String(index);setView();if(previous!==index&&!reducedMotion.matches)$(`slot${index}`).animate([{opacity:0,translate:`${index>previous?12:-12}px 0`},{opacity:1,translate:'0 0'}],{duration:220,easing:'ease-out'});}
 let requestedView=null,viewTask=null;
@@ -115,7 +119,7 @@ async function init(){
  for(let i=0;i<8;i++){
   const slot=document.createElement('div');slot.id=`slot${i}`;slot.className='pocket card';
   slot.style.left=([313,520,842,1048][i%4]/1536*100)+'%';slot.style.top=((i<4?242:514)/1024*100)+'%';
-  {slot.setAttribute('aria-label',`Material sample ${i+1}`);slot.onpointerenter=()=>{if(!reducedMotion.matches&&$('view').value==='book'){cardMotions[i]?.to(true);requestTick();}};slot.onpointerleave=()=>{cardMotions[i]?.to(false);requestTick();};}
+  {slot.setAttribute('aria-label',`Material sample ${i+1}`);slot.onpointerenter=event=>{if(event.pointerType!=='touch'&&!reducedMotion.matches&&$('view').value==='book')hoverCard(i);};slot.onpointerleave=()=>{cardMotions[i]?.to(false);requestTick();};}
   const background=new Image();background.alt='';background.className='base-preview';
   background.src=new URL(`./assets/images/art-${artNames[i]}.webp`,import.meta.url);
   const canvas=document.createElement('canvas');canvas.id=`pocket${i}`;canvas.hidden=true;
@@ -138,7 +142,7 @@ async function init(){
  $('status').textContent='材质加载 0 / 8';
  await Promise.all(jobs);
  ready=completed===8;
- if(ready){document.body.dataset.load='ready';loadShader(variant==='B14'?'B11':'B14').catch(()=>{});if($('view').value==='book'&&!reducedMotion.matches){cardMotions[2].to(true);requestTick();}draw();$('status').textContent='8 / 8 ready';$('status').dataset.ready='true';setSchemeBusy(false);$('restore').disabled=false;}
+ if(ready){document.body.dataset.load='ready';loadShader(variant==='B14'?'B11':'B14').catch(()=>{});draw();$('status').textContent='8 / 8 ready';$('status').dataset.ready='true';setSchemeBusy(false);$('restore').disabled=false;}
  else {document.body.dataset.load='error';$('status').textContent=`材质已加载 ${completed} / 8 · ${errors[0]||'加载失败'}，请重试`;$('retry').hidden=false;}
 }
 // Small inspectable demo API, also used by regression tests. It is not the renderer API.

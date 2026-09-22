@@ -15,7 +15,7 @@ The eight card illustrations are treated as reference-lit artwork. Their dynamic
 
 ## Composition
 
-`LayeredRenderer` augments the existing B11/B14 film shader. Card lighting is evaluated first, in linear color; the existing film transmission attenuation and reflected light are then applied over that substrate. The card and sleeve have separate texture coordinates. Hover slides and turns the card coordinates, while the sleeve normal map stays fixed. The exposed part of a lifted card receives no sleeve reflection.
+`LayeredRenderer` augments the existing B11/B14 film shader. Card lighting is evaluated first, in linear color; the existing film transmission attenuation and reflected light are then applied over that substrate. The card and sleeve have separate texture coordinates. Hover translates and tilts a rigid card plane, using inverse ray/plane perspective projection for its texture coordinates. The same orientation rotates its lighting normals, while the sleeve normal map stays fixed. Cards start at rest; only the hovered card lifts, with leave, cancellation and window-blur cleanup. The exposed part of a lifted card receives no sleeve reflection.
 
 The card response uses a separate RGBA surface map: encoded normal XY, optical phase, and material-region/flake mask. `demo/card-surfaces.js` authors a 256 × 256 map per card once at startup. Some structures are procedural, while flowing and faceted structures use smoothed artwork luminance as a shape guide. Luminance-derived normals are an artistic approximation: illumination already baked into the artwork is not physically inverted.
 
@@ -37,3 +37,5 @@ Material view exposes a Foil layer switch to compare the dynamic card with and w
 - The original 160 optical diagnostic comparisons remain unchanged and pass. Frame time depends on GPU, resolution and browser; the extra response is not zero-cost.
 
 A local Chrome/RTX 5070 Ti spot check (488 × 724 canvas, 3 × 12 frames, synchronous full-frame readback included) measured 0.39–0.43 ms/frame with the card response disabled and 0.41–0.43 ms enabled. The difference was within this short measurement’s noise; it is not a mobile benchmark or a display-FPS guarantee.
+
+`npm run test:hover` verifies startup/reload rest, exclusive hover and return, unclipped converging projected edges, and proportional desktop UI at 1536 × 1024 and 2320 × 1343. Desktop composition fits the viewport at the reference artboard ratio; typography, gallery and switches scale with that artboard instead of independent pixel caps.

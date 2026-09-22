@@ -4,8 +4,13 @@ uniform sampler2D cardMap;
 uniform float cardType,cardAmount,filmAmount,cardLift,cardTurn,cardViewport;
 vec2 cardUV;
 float cardCoverage;
+// Rigid card orientation; inverse ray/plane projection below gives a projective quad.
+mat3 cardRotation(){
+ float lift=clamp(cardLift/.241228,0.,1.),x=radians(22.)*lift,y=radians(-10.)*lift;
+ float a=cos(x),b=sin(x),c=cos(y),d=sin(y),e=cos(cardTurn),f=sin(cardTurn);
+ return mat3(e,f,0.,-f,e,0.,0.,0.,1.)*mat3(c,0.,-d,0.,1.,0.,d,0.,c)*mat3(1.,0.,0.,0.,a,b,0.,-b,a);
+}
 vec3 cardResponse(vec3 cn,vec4 m,float pose,float lighting){
- cn.xy=mat2(cos(cardTurn),sin(cardTurn),-sin(cardTurn),cos(cardTurn))*cn.xy;
  cn=rotate(cn,radians(pose));
  vec3 cv=vec3(0.,0.,1.),cl=normalize(vec3(sin(radians(lighting)),.12,cos(radians(lighting))));
  vec3 h=normalize(cv+cl);float nh=max(dot(cn,h),0.);
@@ -34,7 +39,7 @@ vec3 cardLight(vec3 art){
  vec3 cn=normalize(vec3(xy,sqrt(max(.01,1.-dot(xy,xy)))));
  // Reference-image relighting: preserve authored art at zero pose, move its response
  // continuously with actual normals. This is not calibrated inverse rendering.
- vec3 change=cardResponse(cn,m,angle,lightAngle)-cardResponse(cn,m,0.,24.39);
+ vec3 change=cardResponse(cardRotation()*cn,m,angle,lightAngle)-cardResponse(cn,m,0.,24.39);
  float dark=cardType>1.5&&cardType<2.5||cardType>4.5&&cardType<5.5||cardType>7.5?1.:0.;
  float detail=mix(1.,.3+.7*smoothstep(.01,.35,dot(art,vec3(.2126,.7152,.0722))),dark);
  return max(vec3(0.),art+change*cardAmount*detail*.65);
@@ -47,9 +52,16 @@ export function withCardLayer(source){
  const main=s.indexOf('void main()');s=s.slice(0,main)+cardShader+s.slice(main);
  s=s.replace('void main(){',`void main(){
  foilUV=vec2(uv.x,uv.y*cardViewport);
- vec2 p=(foilUV-vec2(.5,.5+cardLift))*vec2(1.,1.123);
- float cr=cos(cardTurn),sr=sin(cardTurn);
- cardUV=vec2(cr*p.x+sr*p.y,-sr*p.x+cr*p.y)/vec2(1.,1.123)+.5;
+ const float aspect=246./176.;
+ float progress=clamp(cardLift/.241228,0.,1.);
+ mat3 orientation=cardRotation();
+ vec3 camera=vec3(0.,0.,4.),center=vec3(.02*progress,cardLift*aspect,.04*progress);
+ vec3 ray=vec3((foilUV-.5)*vec2(1.,aspect),-4.);
+ vec3 normal=orientation[2];
+ vec3 hit=camera+ray*(dot(normal,center-camera)/dot(normal,ray))-center;
+ // dot with the basis vectors is the inverse of this orthonormal rotation.
+ vec2 local=vec2(dot(hit,orientation[0]),dot(hit,orientation[1]))/(1.-.1*progress);
+ cardUV=local/vec2(1.,aspect)+.5;
  vec2 edge=min(cardUV,1.-cardUV);cardCoverage=step(0.,min(edge.x,edge.y));
  float sleeve=step(foilUV.y,1.);
  if(inspect<.5&&sleeve<.5&&cardCoverage<.5)discard;

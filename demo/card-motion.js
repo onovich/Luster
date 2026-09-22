@@ -20,7 +20,7 @@ export class CardMotion {
   if(this.previous===this.offset)return;
   this.slot.style.setProperty('--card-lift',`${-this.offset/274*100}%`);
   this.slot.style.setProperty('--card-rotation',`${-3*this.offset/(55/228*274)}deg`);
-  if(renderer.setCardPose){renderer.setCardPose(this.offset/274,3*Math.PI/180*this.offset/(55/228*274));}
+  if(renderer.setCardPose){renderer.setCardPose(this.offset/274,Math.PI/180*this.offset/(55/228*274));}
   else if(this.offset===0)renderer.setBackground(this.image);
   else{
    if(!this.background){this.background=document.createElement('canvas');this.background.width=244;this.background.height=274;this.context=this.background.getContext('2d');}
