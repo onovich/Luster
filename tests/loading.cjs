@@ -17,7 +17,7 @@ const assert=require('node:assert/strict');
   assert.equal(await page.locator('#pocket7').isVisible(),false);
   assert.equal(await page.locator('#pocket0').isVisible(),true);
   assert.equal(await page.locator('#variant').isDisabled(),true);
-  await page.locator('#view-material').click();
+  await page.locator('#view-material').click();await page.waitForFunction(()=>!document.body.dataset.viewTransition);
   await page.locator('.material-thumb').nth(7).click();
   assert.equal(await page.locator('.pocket:visible').count(),1);
   release();

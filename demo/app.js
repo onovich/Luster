@@ -53,7 +53,25 @@ $('stage').onpointermove=e=>{if(showcase){showcase=false;cardMotions[2]?.to(fals
 $('stage').onpointerleave=()=>{if(!mode&&renderers.some(Boolean))go(0);};
 function setView(){for(const motion of cardMotions)motion?.to(false);requestTick();const material=$('view').value==='material';$('gestureHint').textContent=material?'Drag Angle to tilt':'Move across the album to tilt · Hover a card to lift';$('book').classList.toggle('material',material);for(const value of ['book','material'])$('view-'+value).setAttribute('aria-pressed',String($('view').value===value));$('materialGallery').hidden=!material;if(material)$('materialGallery').prepend($('albumLoading'));else $('gestureHint').before($('albumLoading'));gallery.setSelected(+$('pocket').value);$('pocketLabel').hidden=true;for(let i=0;i<8;i++)$(`slot${i}`).hidden=material&&i!==+$('pocket').value;}
 function selectMaterial(index){const previous=+$('pocket').value;$('pocket').value=String(index);setView();if(previous!==index&&!reducedMotion.matches)$(`slot${index}`).animate([{opacity:0,translate:`${index>previous?12:-12}px 0`},{opacity:1,translate:'0 0'}],{duration:220,easing:'ease-out'});}
-for(const value of ['book','material'])$('view-'+value).onclick=()=>{$('view').value=value;setView();};
+let requestedView=null,viewTask=null;
+function changeView(next){
+ requestedView=next;
+ if(viewTask)return viewTask;
+ viewTask=(async()=>{
+  document.body.dataset.viewTransition='true';
+  try{while($('view').value!==requestedView){
+   const target=requestedView,elements=[$('stage'),$('materialGallery'),$('albumLoading')];
+   let outgoing=[],incoming=[];
+   try{
+    if(!reducedMotion.matches){outgoing=elements.map(el=>el.animate([{opacity:1},{opacity:0}],{duration:160,easing:'ease-in',fill:'forwards'}));await Promise.all(outgoing.map(a=>a.finished));}
+    $('view').value=target;setView();
+    if(!reducedMotion.matches){incoming=elements.map(el=>el.animate([{opacity:0},{opacity:1}],{duration:220,easing:'ease-out',fill:'forwards'}));outgoing.forEach(a=>a.cancel());await Promise.all(incoming.map(a=>a.finished));}
+   }finally{outgoing.forEach(a=>a.cancel());incoming.forEach(a=>a.cancel());}
+  }}finally{delete document.body.dataset.viewTransition;}
+ })().finally(()=>{viewTask=null;});
+ return viewTask;
+}
+for(const value of ['book','material'])$('view-'+value).onclick=()=>changeView(value).catch(failure);
 window.addEventListener('resize',()=>gallery.setSelected(+$('pocket').value));
 $('view').onchange=setView;$('pocket').onchange=setView;
 async function init(){
