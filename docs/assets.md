@@ -14,3 +14,9 @@ The runtime, tests and capture tools use repository-relative inputs. Browser too
 Private evidence, credentials and generated diagnostics stay out of Git. Publish only the reviewed public branch: earlier local history is intentionally not part of the initial public history. Do not push local archive branches or use `git push --all` for publication.
 
 No open-source license is currently included. Code, artwork and normal fields must not be assumed to share a license. Replace sample art with assets you have permission to use when integrating or redistributing.
+
+## Lossless delivery copies
+
+The demo loads `book.webp` and `base-0.webp` through `base-3.webp`. These are lossless encodings of the preserved PNG originals, including exact transparent RGBA values. Slots 3–7 share the same sleeve image. Run `npm run assets:images` (Python with Pillow) to regenerate them; `python tests/assets.py` verifies decoded byte equality. The five active images total 1,531,698 bytes instead of 2,276,263 bytes (32.7% less).
+
+The original PNGs remain available for provenance and full-composite regression tests. No dimensions, colors, alpha values or rendering parameters were changed.

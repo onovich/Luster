@@ -64,3 +64,19 @@ A single local Chrome/SwiftShader comparison under emulated **10 Mbps download, 
 | All materials ready | 13.0 s | 4.6 s |
 
 These are controlled local measurements of the old and new loading paths, not a promise of public-network timing. Artwork and final shader output are unchanged.
+
+## Lossless artwork and preload check — 2026-09-22
+
+Five active PNGs now have pixel-exact lossless WebP delivery copies (2,276,263 → 1,531,698 bytes). The entry module, first sample image and B14 shader are requested early; shader preloading still results in one network request. The book is prioritized explicitly.
+
+`node tests/artwork.cjs` compares 48 complete rendered outputs using PNG versus WebP backgrounds: both variants, three angles and eight samples. All are exactly equal. Decoded image byte checks, the existing 160 optical comparisons, interaction/layout checks and delayed/failed loading checks also pass.
+
+A single comparison against the preceding progressive-loader version, using the same local Chrome/SwiftShader setup and cold-cache **10 Mbps / 150 ms latency**, measured:
+
+| Milestone | Previous progressive loader | With WebP and early requests |
+| --- | --- | --- |
+| First base artwork | 1.08 s | 0.72 s |
+| First material | 3.44 s | 2.54 s |
+| All materials ready | 4.56 s | 4.18 s |
+
+This measures the additional improvement after the earlier 13.0 → 4.6 s change. Public network and GPU timing vary.

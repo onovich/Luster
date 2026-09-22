@@ -44,6 +44,7 @@ $('view').onchange=setView;$('pocket').onchange=setView;
 async function init(){
  $('variant').disabled=true;$('restore').disabled=true;
  syncControls(params,pose.angle,variant);
+ const shader=loadShader(variant);
  let completed=0;
  const jobs=[];
  // Attach every base image immediately; reveal each canvas only after its first draw.
@@ -52,13 +53,13 @@ async function init(){
   slot.style.left=[10.5,28.8,55.8,74.1][i%4]+'%';slot.style.top=(i<4?16.5:51.8)+'%';
   if(i<3){slot.type='button';slot.setAttribute('aria-label',`Material sample ${i+1}`);slot.onfocus=()=>go(i<2?-4:4);slot.onblur=()=>go(0);}
   const background=new Image();background.alt='';background.className='base-preview';
-  background.src=new URL(`./assets/images/base-${i<3?i:3}.png`,import.meta.url);
+  background.src=new URL(`./assets/images/base-${i<3?i:3}.webp`,import.meta.url);
   const canvas=document.createElement('canvas');canvas.id=`pocket${i}`;canvas.hidden=true;
   slot.append(background,canvas);$('pockets').append(slot);$('pocket').add(new Option(String(i+1),i));
   jobs.push((async()=>{
    let renderer;
    try{
-    await background.decode();
+    await Promise.all([background.decode(),shader]);
     const normal=await loadNormal(i);
     renderer=await FoilRenderer.create(canvas,{normal,background});
     renderer.setParameters(params);renderer.render({angle:pose.angle,inspect:+$('inspect').value});
