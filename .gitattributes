@@ -1,0 +1,4 @@
+* text=auto eol=lf
+tests/fixtures/approved/** -text
+*.png binary
+*.rgba binary

@@ -1,0 +1,7 @@
+.local/
+.test-output/
+__pycache__/
+node_modules/
+*.log
+.env
+.env.*
