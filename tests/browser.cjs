@@ -10,7 +10,7 @@ const hash=x=>crypto.createHash('sha256').update(x).digest('hex');
  try{
  await page.goto('http://127.0.0.1:8798');await page.waitForFunction(()=>window.foilDemo?.state().ready,{},{timeout:90000});
  await page.screenshot({path:path.join(out,'book-b14.png'),fullPage:true});
- 
+
  // Reference and new outputs: same GPU and raster size, reflection/normal only, no background differences.
  const ref=await browser.newPage();
  for(const variant of ['B14','B11']){
@@ -49,7 +49,7 @@ const hash=x=>crypto.createHash('sha256').update(x).digest('hex');
  await page.mouse.move(1,1);await page.evaluate(()=>foilDemo.go(4));await page.waitForFunction(()=>foilDemo.state().angle>0&&foilDemo.state().angle<4);const reversal=await page.evaluate(()=>{const before=foilDemo.state().angle;foilDemo.go(-4);return {before,after:foilDemo.state().angle};});assert.equal(reversal.before,reversal.after);await page.waitForFunction(()=>foilDemo.state().angle===-4);
  for(const id of ['play','dwell']){await page.locator('#'+id).evaluate(el=>el.click());await page.waitForTimeout(500);await page.locator('#'+id).evaluate(el=>el.click());}
  await page.evaluate(()=>foilDemo.go(0));await page.waitForFunction(()=>!foilDemo.state().active);await page.waitForTimeout(200);const rest=await page.evaluate(()=>({count:foilDemo.state().drawCount,images:foilDemo.renderers.map(r=>r.canvas.toDataURL())}));await page.waitForTimeout(600);const rest2=await page.evaluate(()=>({count:foilDemo.state().drawCount,images:foilDemo.renderers.map(r=>r.canvas.toDataURL())}));assert.deepEqual(rest,rest2);report.rest={noFrames:true,identicalPixels:true};
- 
+
  await page.locator('#stage').scrollIntoViewIfNeeded();const box=await page.locator('#stage').boundingBox();await page.mouse.move(box.x+box.width*.2,box.y+box.height*.5);await page.waitForFunction(()=>foilDemo.state().angle===-4);await page.mouse.move(box.x+box.width*.8,box.y+box.height*.5);await page.waitForFunction(()=>foilDemo.state().angle===4);await page.mouse.move(1,1);await page.waitForFunction(()=>foilDemo.state().angle===0);
  await page.locator('#slot0').hover();await page.waitForFunction(()=>foilDemo.state().cardOffsets[0]===55/228*274);
  assert.equal(await page.locator('#slot0').evaluate(el=>getComputedStyle(el).scale),'none');
