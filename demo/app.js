@@ -13,6 +13,7 @@ const $=id=>document.getElementById(id), renderers=[],pose=new PoseTween(0),erro
 const artNames=['orbit','silk','ribbon','facet','diagonal','fold','grain','wave'];
 const gallery=createMaterialGallery($('materialGallery'),artNames,selectMaterial);
 let showcase=true,switching=false,effect='original',effectTween=null;
+let filmEnabled=true,filmWeight=1,filmTween=null;
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
 let variant='B14',params={...presets.B14,strength:.3},mode=null,time=0,last=0,frame=0,drawCount=0,ready=false;
 function failure(error){document.body.dataset.load='error';$('retry').hidden=false;delete $('status').dataset.ready;errors.push(error.message);$('status').textContent=error.message;console.error(error);}
@@ -30,9 +31,10 @@ function tick(ms){
  if(mode){time+=dt;if(mode==='play')pose.set(4*Math.sin(time*Math.PI/4));
  else {const phase=time%3.16,side=phase<1.58?-1:1,t=Math.max(0,Math.min(1,(phase%1.58-1.2)/.38)),q=t*t*t*(t*(t*6-15)+10);pose.set(side*4*(1-2*q));}}
  else pose.advance(dt);
+ if(filmTween){const t=Math.min(1,(ms-filmTween.start)/260),q=t*t*(3-2*t);filmWeight=filmTween.from+(filmTween.to-filmTween.from)*q;for(const r of renderers)r?.setLayers({film:filmWeight});if(t===1)filmTween=null;}
  if(effectTween){const t=Math.min(1,(ms-effectTween.start)/380),q=t*t*(3-2*t);for(const key of Object.keys(effectTween.to))if(typeof effectTween.to[key]==='number')params[key]=effectTween.from[key]+(effectTween.to[key]-effectTween.from[key])*q;if(t===1){params=effectTween.to;effectTween=null;}}
  for(const motion of cardMotions)motion?.advance(dt);
- draw();if(effectTween||mode||pose.active||cardMotions.some(m=>m?.active))frame=requestAnimationFrame(tick);
+ draw();if(filmTween||effectTween||mode||pose.active||cardMotions.some(m=>m?.active))frame=requestAnimationFrame(tick);
 }
 function patch(values){effectTween=null;params={...params,...values};draw();}
 async function restore(next=variant,keepEffect=false){
@@ -44,7 +46,7 @@ async function restore(next=variant,keepEffect=false){
 }
 buildControls($('controls'),(id,value)=>{if(id==='angle'){stop();pose.set(value);draw();}else patch({[id]:value});});
 for(const id of ['angle','light','strength'])$('primaryControls').append($(id).closest('label'));
-function setSchemeBusy(busy){for(const id of ['variant','cardLayer','filmLayer'])$(id).disabled=busy;for(const button of document.querySelectorAll('[data-scheme]'))button.disabled=busy;for(const button of $('effectPresets').children)button.disabled=busy;}
+function setSchemeBusy(busy){for(const id of ['variant','filmLayer'])$(id).disabled=busy;for(const button of document.querySelectorAll('[data-scheme]'))button.disabled=busy;for(const button of $('effectPresets').children)button.disabled=busy;}
 for(const button of document.querySelectorAll('[data-scheme]'))button.onclick=()=>{if(button.dataset.scheme!==variant)restore(button.dataset.scheme,true);};
 for(const id of ['play','dwell'])$(id).onclick=()=>{if(mode===id){stop();pose.set(pose.angle);draw();}else{stop();mode=id;time=id==='play'?Math.asin(pose.angle/4)*4/Math.PI:0;$(id).textContent=id==='play'?'Auto rotate':'Pause';$(id).setAttribute('aria-pressed','true');requestTick();}};
 function syncEffects(){for(const button of $('effectPresets').children)button.setAttribute('aria-pressed',String(button.dataset.effect===effect));}
@@ -92,10 +94,14 @@ function changeView(next){
 }
 for(const value of ['book','material'])$('view-'+value).onclick=()=>changeView(value).catch(failure);
 window.addEventListener('resize',()=>gallery.setSelected(+$('pocket').value));
-for(const [id,layer] of [['cardLayer','card'],['filmLayer','film']])$(id).onclick=()=>{const enabled=$(id).getAttribute('aria-pressed')!=='true';$(id).setAttribute('aria-pressed',String(enabled));for(const r of renderers)r?.setLayers({[layer]:Number(enabled)});draw();};
+$('filmLayer').onclick=()=>{
+ filmEnabled=!filmEnabled;$('filmLayer').setAttribute('aria-checked',String(filmEnabled));
+ if(reducedMotion.matches){filmTween=null;filmWeight=Number(filmEnabled);for(const r of renderers)r?.setLayers({film:filmWeight});draw();}
+ else{filmTween={from:filmWeight,to:Number(filmEnabled),start:performance.now()};requestTick();}
+};
 $('view').onchange=setView;$('pocket').onchange=setView;
 async function init(){
- stop();cancelAnimationFrame(frame);frame=0;
+ stop();cancelAnimationFrame(frame);frame=0;filmTween=null;filmWeight=Number(filmEnabled);
  document.body.dataset.load='loading';$('loadProgress').value=0;$('loadCount').textContent='0 / 8';
  ready=false;errors.length=0;setSchemeBusy(true);$('restore').disabled=true;$('retry').hidden=true;delete $('status').dataset.ready;
  for(const renderer of renderers)renderer?.dispose();renderers.length=0;cardMotions.length=0;$('pockets').replaceChildren();$('pocket').replaceChildren();
@@ -120,7 +126,7 @@ async function init(){
     const [normal]=await Promise.all([loadNormal(i),background.decode(),shader,sleeveReady]);
     renderer=await LayeredRenderer.create(canvas,{variant,normal,background,surface:makeCardSurface(i,background)});
     {cardMotions[i]=new CardMotion(slot,background,sleeve);slot.title=cardSurfaces[i].name+' · '+cardSurfaces[i].material;}
-    renderer.setLayers({card:Number($('cardLayer').getAttribute('aria-pressed')==='true'),film:Number($('filmLayer').getAttribute('aria-pressed')==='true')});
+    renderer.setLayers({card:1,film:filmWeight});
     renderer.setParameters(params);renderer.render({angle:pose.angle,inspect:+$('inspect').value});
     renderers[i]=renderer;canvas.hidden=false;background.hidden=true;
     slot.classList.add('is-ready');completed++;$('loadProgress').value=completed;$('loadCount').textContent=`${completed} / 8`;$('status').textContent=`材质加载 ${completed} / 8`;

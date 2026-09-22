@@ -25,7 +25,7 @@ To preserve the illustration, the renderer adds the difference between current a
 
 Import `LayeredRenderer` from `src/index.js`. It accepts the usual normal map, background and parameters plus `surface: {data, width, height, type}`. Surface data is RGBA `Uint8Array`; `type` is 1–8 in the table order. `setSurface()` replaces it. `setLayers({card, film})` sets response weights in [0, 1]; card = 0 retains the reference illustration. `setCardPose(lift, turn)` takes upward lift in card heights and in-plane rotation in radians. `resize(width, height)` specifies the unlifted card resolution; normal rendering reserves 32% additional transparent height for lift. The demo supplies the matching canvas layout. Diagnostics use the original dimensions and film equations.
 
-Material view exposes Card and Sleeve toggles for independent comparison. Angle and light affect both layers; Intensity continues to control the outer film. Original `FoilRenderer` consumers remain unchanged.
+Material view exposes a Foil layer switch to compare the dynamic card with and without its sleeve. It fades the film response over 260 ms, preserves the selection across samples and presets, and switches immediately for reduced motion. Card response stays enabled in the UI; `setLayers()` supports independent layer comparisons. Angle and light affect both layers; Intensity continues to control the outer film. Original `FoilRenderer` consumers remain unchanged.
 
 ## Cost and checks
 
