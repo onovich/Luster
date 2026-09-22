@@ -8,7 +8,7 @@ Evidence mode: **runtime-tested**. Tested with Windows, installed Chrome headles
 | Asset integrity | 9 public fixture hashes, 8 atlas tiles/orientations, 3 notification-dot removal patches |
 | Public optical regression | B11/B14 × reflection/normal × five angles × eight samples = 160 exact PNG comparisons |
 | Original local optical regression | Same 160 comparisons against untouched original reference HTML passed; original HTML is not published |
-| Controls and layout | 11 material controls, preset restore, inspection, pointer/focus, reversal, pause/rest, eight material views; 320/768/1024/1440 px without horizontal overflow |
+| Controls and layout | 11 material controls, preset restore, inspection, pointer tilt and card-only hover (stationary sleeve), reduced motion, reversal, pause/rest, eight material views; 320/768/1024/1440 px without horizontal overflow |
 | Browser / GPU errors | No page/console errors; all eight WebGL error values zero |
 | Continuity | Every 0→0.01° sample changed by a small nonzero amount, below 5% of its −4→+4° difference |
 | Resource lifecycle | Custom normal dimensions, replacement image, resize, invalid parameter rejection, repeated disposal and GPU resource release |

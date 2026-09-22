@@ -42,8 +42,16 @@ const hash=x=>crypto.createHash('sha256').update(x).digest('hex');
  for(const id of ['play','dwell']){await page.locator('#'+id).click();await page.waitForTimeout(500);await page.locator('#'+id).click();}
  await page.locator('#center').click();await page.waitForFunction(()=>!foilDemo.state().active);await page.waitForTimeout(200);const rest=await page.evaluate(()=>({count:foilDemo.state().drawCount,images:foilDemo.renderers.map(r=>r.canvas.toDataURL())}));await page.waitForTimeout(600);const rest2=await page.evaluate(()=>({count:foilDemo.state().drawCount,images:foilDemo.renderers.map(r=>r.canvas.toDataURL())}));assert.deepEqual(rest,rest2);report.rest={noFrames:true,identicalPixels:true};
  const box=await page.locator('#stage').boundingBox();await page.mouse.move(box.x+box.width*.2,box.y+box.height*.5);await page.waitForFunction(()=>foilDemo.state().angle===-4);await page.mouse.move(box.x+box.width*.8,box.y+box.height*.5);await page.waitForFunction(()=>foilDemo.state().angle===4);await page.mouse.move(1,1);await page.waitForFunction(()=>foilDemo.state().angle===0);
- await page.locator('#slot0').hover();await page.waitForTimeout(300);assert.equal(await page.locator('#slot0').evaluate(el=>getComputedStyle(el).scale),'1.015');await page.mouse.move(1,1);
- await page.locator('#slot1').focus();await page.waitForFunction(()=>foilDemo.state().angle===-4);await page.locator('#center').focus();
+ await page.locator('#slot0').hover();await page.waitForFunction(()=>foilDemo.state().cardOffsets[0]===55/228*274);
+ assert.equal(await page.locator('#slot0').evaluate(el=>getComputedStyle(el).scale),'none');
+ const lifted=await page.evaluate(()=>({offset:foilDemo.state().cardOffsets[0],canvasTop:document.querySelector('#slot0 canvas').offsetTop,content:getComputedStyle(document.querySelector('#slot0 .card-content')).translate}));
+ assert.equal(lifted.canvasTop,0);assert.notEqual(lifted.content,'none');
+ await page.screenshot({path:path.join(out,'book-hover.png'),fullPage:true});
+ await page.selectOption('#inspect','3');const hoverNormals=await page.evaluate(()=>{foilDemo.setAngle(-4);return foilDemo.capture()[0];});
+ await page.mouse.move(1,1);await page.waitForFunction(()=>foilDemo.state().cardOffsets[0]===0);
+ const restNormals=await page.evaluate(()=>{foilDemo.setAngle(-4);return foilDemo.capture()[0];});assert.equal(hoverNormals,restNormals,'Sleeve normal field stays fixed during hover');await page.selectOption('#inspect','0');
+ await page.emulateMedia({reducedMotion:'reduce'});await page.locator('#slot0').hover();await page.waitForTimeout(250);assert.equal(await page.evaluate(()=>foilDemo.state().cardOffsets[0]),0);await page.mouse.move(1,1);await page.emulateMedia({reducedMotion:'no-preference'});
+ report.hover={cardLift:lifted.offset,stationarySleeve:true,noScaling:true,reducedMotion:true};
  await page.selectOption('#view','material');for(let i=0;i<8;i++){await page.selectOption('#pocket',String(i));assert.equal(await page.locator('.pocket:visible').count(),1);}await page.selectOption('#pocket','0');await page.screenshot({path:path.join(out,'material-b14.png'),fullPage:true});await page.selectOption('#view','book');
  for(const width of [320,768,1024,1440]){await page.setViewportSize({width,height:1000});const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth);assert.equal(overflow,false);report.sizes.push({width,overflow});if(width===320)await page.screenshot({path:path.join(out,'mobile.png'),fullPage:true});}
  await page.evaluate(()=>foilDemo.setAngle(-4));await page.screenshot({path:path.join(out,'book-b14.png'),fullPage:true});

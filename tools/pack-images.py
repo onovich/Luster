@@ -4,7 +4,7 @@ from PIL import Image
 
 folder = Path(__file__).resolve().parents[1] / 'demo/assets/images'
 before = after = 0
-for name in ['book', 'base-0', 'base-1', 'base-2', 'base-3']:
+for name in ['book-cover', 'book-pages', 'book-shadow', *[f'book-ring-{i}' for i in range(4)], 'base-0', 'base-1', 'base-2', 'base-3']:
     source = folder / f'{name}.png'
     target = folder / f'{name}.webp'
     original = Image.open(source).convert('RGBA')
