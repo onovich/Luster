@@ -1,3 +1,4 @@
+import {createMaterialGallery} from './material-gallery.js';
 import {captureTransition} from './scheme-transition.js';
 import {FoilRenderer} from '../src/index.js';
 import {loadShader} from '../src/webgl/resources.js';
@@ -8,6 +9,7 @@ import {loadNormal} from './normal-loader.js';
 import {CardMotion} from './card-motion.js';
 const $=id=>document.getElementById(id), renderers=[],pose=new PoseTween(0),errors=[],cardMotions=[];
 const artNames=['orbit','silk','ribbon','facet','diagonal','fold','grain','wave'];
+const gallery=createMaterialGallery($('materialGallery'),artNames,selectMaterial);
 let showcase=true,switching=false;
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
 let variant='B14',params={...presets.B14,strength:.3},mode=null,time=0,last=0,frame=0,drawCount=0,ready=false;
@@ -49,8 +51,10 @@ $('uniform').onclick=()=>patch({flatFloor:1,localBoost:1,whiteGain:1});
 $('uniformStructure').onclick=()=>patch({richness:0});$('restoreStructure').onclick=()=>patch({richness:22,bend:.45});
 $('stage').onpointermove=e=>{if(showcase){showcase=false;cardMotions[2]?.to(false);requestTick();}if(mode||!renderers.some(Boolean)||reducedMotion.matches)return;const rect=$('stage').getBoundingClientRect(),x=e.clientX-rect.left-rect.width/2,width=$('book').offsetWidth,material=$('view').value==='material',y=e.clientY-rect.top,outsideY=!material&&(y<rect.height*.17||y>rect.height*.83);const next=outsideY||Math.abs(x)>width*(material?.5:.44)?0:Math.abs(x)<3*width/1190?pose.target:x<0?-4:4;if(pose.target!==next)go(next);};
 $('stage').onpointerleave=()=>{if(!mode&&renderers.some(Boolean))go(0);};
-function setView(){for(const motion of cardMotions)motion?.to(false);requestTick();const material=$('view').value==='material';$('gestureHint').textContent=material?'Drag Angle to tilt':'Move across the album to tilt · Hover a card to lift';$('book').classList.toggle('material',material);for(const value of ['book','material'])$('view-'+value).setAttribute('aria-pressed',String($('view').value===value));$('pocketLabel').hidden=!material;for(let i=0;i<8;i++)$(`slot${i}`).hidden=material&&i!==+$('pocket').value;}
+function setView(){for(const motion of cardMotions)motion?.to(false);requestTick();const material=$('view').value==='material';$('gestureHint').textContent=material?'Drag Angle to tilt':'Move across the album to tilt · Hover a card to lift';$('book').classList.toggle('material',material);for(const value of ['book','material'])$('view-'+value).setAttribute('aria-pressed',String($('view').value===value));$('materialGallery').hidden=!material;if(material)$('materialGallery').prepend($('albumLoading'));else $('gestureHint').before($('albumLoading'));gallery.setSelected(+$('pocket').value);$('pocketLabel').hidden=true;for(let i=0;i<8;i++)$(`slot${i}`).hidden=material&&i!==+$('pocket').value;}
+function selectMaterial(index){const previous=+$('pocket').value;$('pocket').value=String(index);setView();if(previous!==index&&!reducedMotion.matches)$(`slot${index}`).animate([{opacity:0,translate:`${index>previous?12:-12}px 0`},{opacity:1,translate:'0 0'}],{duration:220,easing:'ease-out'});}
 for(const value of ['book','material'])$('view-'+value).onclick=()=>{$('view').value=value;setView();};
+window.addEventListener('resize',()=>gallery.setSelected(+$('pocket').value));
 $('view').onchange=setView;$('pocket').onchange=setView;
 async function init(){
  stop();cancelAnimationFrame(frame);frame=0;

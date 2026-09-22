@@ -30,3 +30,20 @@ body:not([data-load=loading]) #albumLoading{opacity:0;visibility:hidden}body[dat
 @media(prefers-reduced-motion:reduce){.pocket.is-ready>canvas:not(.scheme-transition){animation:none}#albumLoading,#loadProgress::-webkit-progress-value{transition:none}}
 
 #albumLoading{display:flex;flex-direction:column-reverse;gap:12px;width:min(300px,70vw);text-transform:uppercase;letter-spacing:.25em}#albumLoading>div{margin:0}#schemeName{border-radius:20px;padding:7px 12px}
+
+/* Material view: a single work and its visual collection, not a numeric form. */
+#book.material{width:24%;max-width:470px;top:min(6.5vw,150px);margin:auto}
+#materialGallery{position:absolute;top:65%;left:50%;translate:-50% 0;width:min(1200px,78%);z-index:2;text-align:center}
+#materialIndex{display:block;font-size:11px;letter-spacing:.15em;font-variant-numeric:tabular-nums;margin-bottom:18px}
+.material-navigation{display:flex;align-items:center;gap:18px}.material-navigation>button{flex:0 0 44px;width:44px;min-height:44px;background:transparent;border:0;font-size:30px;padding:0;color:var(--paper)}
+.material-thumbnails{position:relative;display:flex;flex:1;gap:16px;overflow-x:auto;scrollbar-width:none;padding:5px;min-width:0}.material-thumbnails::-webkit-scrollbar{display:none}
+.material-thumb{flex:1 0 0;min-width:44px;aspect-ratio:176/246;padding:3px;border:1px solid transparent;border-radius:5px;background:transparent;transition:opacity .2s,transform .2s,border-color .2s;opacity:.55;min-height:44px;overflow:hidden}
+.material-thumb img{display:block;width:100%;height:100%;object-fit:cover;border-radius:2px;pointer-events:none}.material-thumb:hover{opacity:1;transform:translateY(-3px)}.material-thumb[aria-pressed=true]{opacity:1;border-color:var(--paper);box-shadow:0 0 0 1px #f5ecd940}.material-thumb:focus-visible{outline-offset:1px}
+body:has(#book.material) #albumLoading{bottom:12%}
+@media(max-width:950px){#book.material{width:27%;top:100px}#materialGallery{top:62%;width:88%}.material-navigation{gap:8px}.material-thumbnails{gap:8px}#materialIndex{margin-bottom:10px}}
+@media(max-width:600px){#book.material{width:55%;max-width:260px;top:0;margin:0 auto 24px}#materialGallery{position:relative;top:auto;left:auto;translate:none;width:calc(100% - 28px);margin:0 auto 24px}.material-thumbnails{gap:10px}.material-thumb{flex:0 0 48px}.material-navigation{gap:3px}body:has(#book.material) #albumLoading{bottom:235px}}
+@media(prefers-reduced-motion:reduce){.material-thumb{transition:none}}
+
+#materialGallery #albumLoading{position:relative;left:auto;top:auto;bottom:auto;translate:none;width:min(300px,100%);margin:0 auto 18px}
+body:not([data-load=loading]) #materialGallery #albumLoading{display:none}
+body[data-load=loading] #materialGallery #materialIndex{display:none}

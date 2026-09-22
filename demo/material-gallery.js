@@ -1,0 +1,8 @@
+/** Visual sample navigation, independent of the optical scheme selector. */
+export function createMaterialGallery(root,names,onSelect){
+ const strip=root.querySelector('.material-thumbnails'),counter=root.querySelector('#materialIndex');let selected=0;
+ const buttons=names.map((name,index)=>{const button=document.createElement('button');button.type='button';button.className='material-thumb';button.setAttribute('aria-label',`Material ${String(index+1).padStart(2,'0')} · ${name}`);button.title=name[0].toUpperCase()+name.slice(1);const image=new Image();image.alt='';image.draggable=false;image.src=new URL(`./assets/images/art-${name}.webp`,import.meta.url);button.append(image);button.onclick=()=>onSelect(index);button.onkeydown=e=>{let next;if(e.key==='ArrowRight')next=(selected+1)%names.length;else if(e.key==='ArrowLeft')next=(selected+names.length-1)%names.length;else if(e.key==='Home')next=0;else if(e.key==='End')next=names.length-1;else return;e.preventDefault();onSelect(next);buttons[next].focus({preventScroll:true});};strip.append(button);return button;});
+ root.querySelector('#materialPrevious').onclick=()=>onSelect((selected+names.length-1)%names.length);
+ root.querySelector('#materialNext').onclick=()=>onSelect((selected+1)%names.length);
+ return {setSelected(index){selected=index;buttons.forEach((b,i)=>{b.setAttribute('aria-pressed',String(i===index));b.tabIndex=i===index?0:-1;});counter.textContent=`${String(index+1).padStart(2,'0')} / ${String(names.length).padStart(2,'0')}`;if(!root.hidden){const item=buttons[index];strip.scrollTo({left:item.offsetLeft-(strip.clientWidth-item.offsetWidth)/2,behavior:'instant'});}}};
+}
