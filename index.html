@@ -1,11 +1,12 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Luster</title><link rel="icon" href="data:,"><link rel="stylesheet" href="./demo/style.css"><link rel="modulepreload" href="./demo/app.js"><link rel="preload" href="./demo/assets/images/art-orbit.webp" as="image"><link rel="preload" href="./src/shaders/B14.frag" as="fetch" crossorigin></head>
-<body><main>
+<body data-load="loading"><main>
 <header><div class="identity"><h1>Luster</h1></div><nav aria-label="项目链接"><a href="https://github.com/onovich/Luster/blob/main/docs/guide.md">About</a><a href="https://github.com/onovich/Luster">GitHub</a></nav></header>
 <div id="stage" aria-label="左右移动倾斜书本"><div id="book">
 <img class="book-art book-cobalt" src="./demo/assets/images/book-exhibit.webp" alt="钴蓝绒面卡册，象牙白纸页与四枚金属环" fetchpriority="high" decoding="async">
 <span class="cover-copy cover-left" aria-hidden="true">SMALL<br>SHIFTS<br>BRIGHTER<br>WORLDS<br>—</span><span class="cover-copy cover-right" aria-hidden="true">MATERIALS<br>LIGHT<br>PERSPECTIVE<br>PLAY<br>—</span><div id="pockets"></div></div></div>
 
+<div id="albumLoading" role="status" aria-label="材质加载进度"><div><span>Preparing light</span><span id="loadCount">0 / 8</span></div><progress id="loadProgress" max="8" value="0" aria-label="已就绪材质"></progress></div>
 <p id="gestureHint" class="hint">左右移动倾斜卡册 · 悬停卡牌向上抽出</p>
 <section class="console" aria-label="演示控制">
 <div class="toolbar">

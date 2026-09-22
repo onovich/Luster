@@ -12,6 +12,7 @@
     "test:material": "node tests/material.cjs",
     "test:privacy": "node --test tests/privacy.test.js",
     "assets:pack": "node tools/pack-normals.mjs",
+    "test:states": "node tests/states.cjs",
     "test:exhibit": "node tests/exhibit.cjs",
     "test:recovery": "node tests/recovery.cjs",
     "test:loading": "node tests/loading.cjs",

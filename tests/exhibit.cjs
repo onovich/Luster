@@ -4,8 +4,8 @@ const assert=require('node:assert/strict');
  const p=await b.newPage({viewport:{width:2320,height:1343}});
  await p.goto(process.env.DEMO_URL||'http://127.0.0.1:8798',{waitUntil:'domcontentloaded',timeout:120000});await p.waitForFunction(()=>window.foilDemo?.state().ready,null,{timeout:120000});
  assert.equal(new Set(await p.locator('.base-preview').evaluateAll(nodes=>nodes.map(n=>n.src))).size,8);
- for(const id of ['right','left','center']){const before=await p.locator('#variant').inputValue();await p.locator('#'+id).click();await p.waitForFunction(v=>foilDemo.state().variant!==v,before);assert.equal(await p.locator('#schemeName').innerText(),await p.locator('#variant').inputValue());}
- await p.locator('#advanced summary').click();await p.selectOption('#variant','B14');await p.waitForFunction(()=>foilDemo.state().variant==='B14');assert.equal(await p.locator('#schemeName').innerText(),'B14');await p.keyboard.press('Escape');
+ for(const id of ['right','left','center']){const before=await p.locator('#variant').inputValue();await p.locator('#'+id).click();await p.waitForFunction(v=>foilDemo.state().variant!==v,before);assert.equal(await p.locator('#schemeName').textContent(),await p.locator('#variant').inputValue());}
+ await p.locator('#advanced summary').click();await p.selectOption('#variant','B14');await p.waitForFunction(()=>foilDemo.state().variant==='B14');assert.equal(await p.locator('#schemeName').textContent(),'B14');await p.keyboard.press('Escape');
  const slot=await p.locator('#slot0').boundingBox();await p.mouse.move(slot.x+slot.width/2,slot.y+slot.height/2);await p.waitForFunction(()=>foilDemo.state().cardOffsets[0]>60&&foilDemo.state().angle===-4);
  assert.notEqual(await p.locator('#book').evaluate(e=>getComputedStyle(e).transform),'none');
  await p.mouse.move(1,1);await p.waitForFunction(()=>foilDemo.state().cardOffsets[0]===0&&foilDemo.state().angle===0);
