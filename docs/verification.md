@@ -15,7 +15,7 @@ Evidence mode: **runtime-tested**. Tested with Windows, installed Chrome headles
 | README | English/Chinese deterministic check passed with zero warnings |
 | Cover | 1280×640 PNG below 1 MB; editable SVG; full-size and 320×160 review on light/dark backgrounds |
 
-Reports: [browser](validation/browser-report.json), [material](validation/material-report.json). Commands and prerequisites are in the root README. Generated outputs remain in ignored `.test-output/`; selected captures are published in `docs/screenshots/`. `node tools/capture.cjs` captures cover source material from the public demo while the static server runs.
+Reports: [browser](validation/browser-report.json), [material](validation/material-report.json). Commands and prerequisites are below. Generated outputs remain in ignored `.test-output/`; selected captures are published in `docs/screenshots/`. `node tools/capture.cjs` captures cover source material from the public demo while the static server runs.
 
 The public reference harness was extracted from the original WebGL routines and separated from unrelated UI and embedded screenshots. Shader, preset and normal-atlas files remain byte-identical to their source. The public manifest describes this sanitized fixture set, not the old HTML. During the separate original-reference run the optics passed, but a later interaction wait timed out; the full public browser suite was then run alone and passed. Original-page interaction is not part of the published test contract.
 
@@ -24,3 +24,27 @@ The public reference harness was extracted from the original WebGL routines and 
 Exact equality applies to the same browser/GPU and 488×548 render size; floating-point results and derivatives can differ across devices. Safari, Firefox, physical mobile GPUs and screen readers were not validated. Eight contexts and five light samples × 64 wavelengths are a study configuration, not a large-instance performance guarantee. Context loss requires recreation.
 
 Normals are image estimates, not measurements. The spectral response is an art-directed approximation, not a calibrated or energy-conserving BSDF. The automated publication scan catches specific textual hazards; it does not prove the absence of every possible secret. Public images were also visually inspected, and the initial public history excludes the earlier local evidence commits.
+
+## Run the checks
+
+Requires Node.js for contract tests, Python 3 with Pillow for asset checks, and Playwright with installed Chrome for browser tests.
+
+```sh
+python -m pip install Pillow
+npm install --no-save --package-lock=false playwright
+npm test
+python tests/assets.py
+```
+
+Start the demo server in a separate terminal, then run the browser checks:
+
+```sh
+python -m http.server 8798 --bind 127.0.0.1
+```
+
+```sh
+node tests/browser.cjs
+node tests/material.cjs
+```
+
+Set `CHROME_PATH` to use another browser executable or `PLAYWRIGHT_PATH` to use an existing Playwright module. Reports are written to `.test-output/`.

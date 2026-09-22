@@ -34,7 +34,7 @@ flowchart LR
 | `tools/` | Reproducible visual capture tooling |
 | `docs/screenshots/` | Selected runtime evidence |
 | `docs/validation/` | Small checked-in verification reports |
-| `docs/` | Integration, naming, architecture, privacy and editable cover |
+| `docs/` | Integration, architecture, privacy and editable cover |
 
 Generated test output belongs in `.test-output/`. Local source evidence belongs in ignored `.local/`; neither is part of the published project.
 
