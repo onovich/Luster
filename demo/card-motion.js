@@ -19,8 +19,8 @@ export class CardMotion {
  apply(renderer){
   if(this.previous===this.offset)return;
   this.slot.style.setProperty('--card-lift',`${-this.offset/274*100}%`);
-  this.slot.style.setProperty('--card-rotation',`${-3*this.offset/(55/228*274)}deg`);
-  if(renderer.setCardPose){renderer.setCardPose(this.offset/274,Math.PI/180*this.offset/(55/228*274));}
+  this.slot.style.setProperty('--card-rotation','0deg');
+  if(renderer.setCardPose){renderer.setCardPose(this.offset/274,0);}
   else if(this.offset===0)renderer.setBackground(this.image);
   else{
    if(!this.background){this.background=document.createElement('canvas');this.background.width=244;this.background.height=274;this.context=this.background.getContext('2d');}
@@ -28,7 +28,7 @@ export class CardMotion {
    ctx.clearRect(0,0,244,274);ctx.drawImage(this.sleeve,0,0,244,274);
    // Trim only the baked sleeve rim from the example; it must not slide with the card.
    const w=this.image.naturalWidth,h=this.image.naturalHeight;
-   ctx.save();ctx.translate(122,137-this.offset);ctx.rotate(-3*Math.PI/180*this.offset/(55/228*274));
+   ctx.save();ctx.translate(122,137-this.offset);
    ctx.drawImage(this.image,w*8/244,h*8/274,w*228/244,h*258/274,-114,-129,228,258);ctx.restore();
    renderer.setBackground(this.background);
   }

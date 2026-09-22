@@ -4,11 +4,11 @@ uniform sampler2D cardMap;
 uniform float cardType,cardAmount,filmAmount,cardLift,cardTurn,cardViewport;
 vec2 cardUV;
 float cardCoverage;
-// Rigid card orientation; inverse ray/plane projection below gives a projective quad.
+// Optional in-plane rotation for library callers. Demo extraction uses zero turn:
+// the card and sleeve share the book's CSS projection and remain coplanar.
 mat3 cardRotation(){
- float lift=clamp(cardLift/.241228,0.,1.),x=radians(22.)*lift,y=radians(-10.)*lift;
- float a=cos(x),b=sin(x),c=cos(y),d=sin(y),e=cos(cardTurn),f=sin(cardTurn);
- return mat3(e,f,0.,-f,e,0.,0.,0.,1.)*mat3(c,0.,-d,0.,1.,0.,d,0.,c)*mat3(1.,0.,0.,0.,a,b,0.,-b,a);
+ float c=cos(cardTurn),s=sin(cardTurn);
+ return mat3(c,s,0.,-s,c,0.,0.,0.,1.);
 }
 vec3 cardResponse(vec3 cn,vec4 m,float pose,float lighting){
  cn=rotate(cn,radians(pose));
@@ -53,15 +53,9 @@ export function withCardLayer(source){
  s=s.replace('void main(){',`void main(){
  foilUV=vec2(uv.x,uv.y*cardViewport);
  const float aspect=246./176.;
- float progress=clamp(cardLift/.241228,0.,1.);
- mat3 orientation=cardRotation();
- vec3 camera=vec3(0.,0.,4.),center=vec3(.02*progress,cardLift*aspect,.04*progress);
- vec3 ray=vec3((foilUV-.5)*vec2(1.,aspect),-4.);
- vec3 normal=orientation[2];
- vec3 hit=camera+ray*(dot(normal,center-camera)/dot(normal,ray))-center;
- // dot with the basis vectors is the inverse of this orthonormal rotation.
- vec2 local=vec2(dot(hit,orientation[0]),dot(hit,orientation[1]))/(1.-.1*progress);
- cardUV=local/vec2(1.,aspect)+.5;
+ vec2 p=(foilUV-vec2(.5,.5+cardLift))*vec2(1.,aspect);
+ float c=cos(cardTurn),s=sin(cardTurn);
+ cardUV=vec2(c*p.x+s*p.y,-s*p.x+c*p.y)/vec2(1.,aspect)+.5;
  vec2 edge=min(cardUV,1.-cardUV);cardCoverage=step(0.,min(edge.x,edge.y));
  float sleeve=step(foilUV.y,1.);
  if(inspect<.5&&sleeve<.5&&cardCoverage<.5)discard;
