@@ -80,3 +80,9 @@ A single comparison against the preceding progressive-loader version, using the 
 | All materials ready | 4.56 s | 4.18 s |
 
 This measures the additional improvement after the earlier 13.0 → 4.6 s change. Public network and GPU timing vary.
+
+## Cobalt presentation
+
+The cobalt desktop concept was refined to isolate the material against neutral paper and group controls below the album. The mobile layout defaults to an enlarged material view. The mockups establish visual direction; actual checks use the running page.
+
+`npm run test:usability` verifies 320/390/768/1440 px widths, mobile defaults, visible 44 px controls, keyboard range inputs and disclosure, playback/angle state labels, and absence of horizontal overflow or page errors. The existing optical and full-composite references remain unchanged.

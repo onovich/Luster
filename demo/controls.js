@@ -20,6 +20,7 @@ export function syncControls(parameters,angle,variant) {
   document.getElementById(id+'Value').value=(id==='angle'?angle.toFixed(2):input.value)+(unit||'');
   input.disabled=variant==='B11'&&['richness','bend'].includes(id);
  }
+ for(const [id,target] of [['left',-4],['center',0],['right',4]])document.getElementById(id).setAttribute('aria-pressed',String(Math.abs(angle-target)<.001));
  document.getElementById('enabled').checked=parameters.enabled;
  for(const id of ['uniformStructure','restoreStructure']) document.getElementById(id).disabled=variant==='B11';
  document.querySelector('#inspect option[value="5"]').disabled=variant==='B11';
