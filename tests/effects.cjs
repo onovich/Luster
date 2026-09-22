@@ -15,8 +15,8 @@ const assert=require('node:assert/strict');
   }
   assert.equal(new Set(frames).size,4,'each treatment changes rendered pixels');
  }
- await page.locator('#center').click();await page.waitForFunction(()=>!foilDemo.state().switching);assert.equal(await page.evaluate(()=>foilDemo.state().effect),'fine');
- await page.locator('#advanced summary').click();await page.locator('[data-effect=original]').click();await page.waitForFunction(()=>!foilDemo.state().effectTransition);
+ await page.locator('#advanced summary').click();await page.locator('[data-scheme=B11]').click();await page.waitForFunction(()=>!foilDemo.state().switching);assert.equal(await page.evaluate(()=>foilDemo.state().effect),'fine');
+ await page.locator('[data-effect=original]').click();await page.waitForFunction(()=>!foilDemo.state().effectTransition);
  await page.locator('#advanced summary').click();await page.screenshot({path:'.test-output/advanced-presets.png',fullPage:true});
  await page.keyboard.press('Escape');assert.equal(await page.locator('#advanced').getAttribute('open'),null);
  await page.locator('#advanced summary').click();await page.mouse.click(20,20);assert.equal(await page.locator('#advanced').getAttribute('open'),null);

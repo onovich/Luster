@@ -43,8 +43,8 @@ async function restore(next=variant,keepEffect=false){
 }
 buildControls($('controls'),(id,value)=>{if(id==='angle'){stop();pose.set(value);draw();}else patch({[id]:value});});
 for(const id of ['angle','light','strength'])$('primaryControls').append($(id).closest('label'));
-function setSchemeBusy(busy){for(const id of ['variant','left','center','right'])$(id).disabled=busy;for(const button of $('effectPresets').children)button.disabled=busy;}
-for(const id of ['left','center','right'])$(id).onclick=()=>restore(variant==='B14'?'B11':'B14',true);
+function setSchemeBusy(busy){$('variant').disabled=busy;for(const button of document.querySelectorAll('[data-scheme]'))button.disabled=busy;for(const button of $('effectPresets').children)button.disabled=busy;}
+for(const button of document.querySelectorAll('[data-scheme]'))button.onclick=()=>{if(button.dataset.scheme!==variant)restore(button.dataset.scheme,true);};
 for(const id of ['play','dwell'])$(id).onclick=()=>{if(mode===id){stop();pose.set(pose.angle);draw();}else{stop();mode=id;time=id==='play'?Math.asin(pose.angle/4)*4/Math.PI:0;$(id).textContent=id==='play'?'Auto rotate':'Pause';$(id).setAttribute('aria-pressed','true');requestTick();}};
 function syncEffects(){for(const button of $('effectPresets').children)button.setAttribute('aria-pressed',String(button.dataset.effect===effect));}
 function selectEffect(next){

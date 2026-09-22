@@ -14,13 +14,13 @@
 <div class="view-switch" role="group" aria-label="View"><button id="view-book" aria-pressed="true">Album</button><button id="view-material" aria-pressed="false">Material</button></div><select id="view" hidden aria-label="View"><option value="book">Album</option><option value="material">Material</option></select>
 <label id="pocketLabel" hidden>Sample<select id="pocket"></select></label>
 
-<div class="angle-buttons" role="group" aria-label="材质方案"><button id="left" aria-label="上一方案">‹</button><button id="center" aria-label="切换方案"><span class="angle-dial" aria-hidden="true"></span><span id="schemeName">B14</span></button><button id="right" aria-label="下一方案">›</button></div>
+
 <button id="play" class="auto-toggle" aria-pressed="false">Auto rotate</button>
 
 </div>
 <section class="controls primary-controls" aria-label="常用参数" id="primaryControls"></section>
-<details id="advanced"><summary>Advanced<span aria-hidden="true" class="chevron"></span></summary>
-<div class="preset-popover" role="group" aria-label="Light treatments" id="effectPresets"></div></details></section>
+<details id="advanced"><summary>Presets<span aria-hidden="true" class="chevron"></span></summary>
+<div class="preset-popover"><span class="preset-heading">Rendering</span><div class="scheme-options" role="group" aria-label="Rendering scheme"><button data-scheme="B11" aria-pressed="false">B11</button><button data-scheme="B14" aria-pressed="true">B14</button></div><span class="preset-heading">Light treatment</span><div role="group" aria-label="Light treatments" id="effectPresets"></div></div></details></section>
 <div id="labControls" hidden><div class="advanced-content"><div class="toolbar"><label class="preset">Preset<select id="variant"><option>B14</option><option>B11</option></select></label><button id="restore">Reset</button><label class="reflection">Reflection on<input id="enabled" type="checkbox" role="switch" checked></label></div><section class="controls" aria-label="材质参数" id="controls"></section>
 <div class="toolbar comparison" aria-label="对照"><label>检查<select id="inspect"><option value="0">完整</option><option value="1">反光</option><option value="3">法线</option><option value="4">范围</option><option value="5">间距</option></select></label><button id="dwell" aria-pressed="false">停留循环</button><button id="resetLocal">恢复范围</button><button id="uniform">均匀覆膜</button><button id="uniformStructure">关闭关联</button><button id="restoreStructure">恢复关联</button></div>
 </div></div>
