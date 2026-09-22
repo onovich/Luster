@@ -37,3 +37,9 @@ PNG alpha 存的是 Y 低字节；不要把 PNG 画进普通 2D canvas 再 getIm
 | 7 | 原估计 4 |
 
 法线在高度翻转之后生成，因此不要再额外翻转 X/Y 分量。五份独立估计来自原画辅助估计，并非实测扫描。公开仓库直接包含已认可 raw；不依赖原始工程，也不重新估算法线。
+
+## Network encoding
+
+The demo downloads `normal-N.delta.gz` when `DecompressionStream` is available. These files use a reversible byte predictor: subtract the byte four positions earlier, modulo 256, then gzip the result. Decode gzip, then cumulatively add the decoded byte four positions earlier. This preserves every XY16 byte, including the alpha channel. There is no image decoder or color conversion in this path.
+
+The eight fields total 8,388,608 bytes raw and 3,133,635 bytes packed (63% less). `npm run assets:pack` regenerates the packed files; `python tests/assets.py` verifies their exact reconstruction. Browsers without `DecompressionStream` load the original `.rgba` files.

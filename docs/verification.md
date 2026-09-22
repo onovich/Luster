@@ -48,3 +48,19 @@ node tests/material.cjs
 ```
 
 Set `CHROME_PATH` to use another browser executable or `PLAYWRIGHT_PATH` to use an existing Playwright module. Reports are written to `.test-output/`.
+
+## Progressive loading check — 2026-09-22
+
+The demo now starts image loading for all slots immediately, fetches normal fields concurrently, and shows each rendered material as soon as it is ready. Base artwork stays visible until the first material draw; failed slots retain that artwork with an explicit incomplete-load status. Preset switching is enabled once initialization completes. Shader requests are shared and cached, with failed requests evicted for retry.
+
+`node tests/loading.cjs` checks a deliberately delayed final normal, switching views during loading, one failed asset, a single B14 shader request, and the raw-byte fallback. The 160 same-GPU optical comparisons, material lifecycle tests and exact packed-byte checks also pass.
+
+A single local Chrome/SwiftShader comparison under emulated **10 Mbps download, 150 ms latency and disabled cache** measured:
+
+| Milestone | Previous | Updated |
+| --- | --- | --- |
+| Base artwork visible | Waited for final draw | 1.1 s |
+| First material visible | Waited for final draw | 3.4 s |
+| All materials ready | 13.0 s | 4.6 s |
+
+These are controlled local measurements of the old and new loading paths, not a promise of public-network timing. Artwork and final shader output are unchanged.

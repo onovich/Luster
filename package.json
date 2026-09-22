@@ -10,7 +10,9 @@
     "test:browser": "node tests/browser.cjs",
     "test:assets": "python tests/assets.py",
     "test:material": "node tests/material.cjs",
-    "test:privacy": "node --test tests/privacy.test.js"
+    "test:privacy": "node --test tests/privacy.test.js",
+    "assets:pack": "node tools/pack-normals.mjs",
+    "test:loading": "node tests/loading.cjs"
   },
   "description": "Art-directed spectral foil rendering in WebGL."
 }

@@ -2,3 +2,4 @@
 tests/fixtures/approved/** -text
 *.png binary
 *.rgba binary
+*.gz binary
