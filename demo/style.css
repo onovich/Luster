@@ -47,3 +47,17 @@ body:has(#book.material) #albumLoading{bottom:12%}
 #materialGallery #albumLoading{position:relative;left:auto;top:auto;bottom:auto;translate:none;width:min(300px,100%);margin:0 auto 18px}
 body:not([data-load=loading]) #materialGallery #albumLoading{display:none}
 body[data-load=loading] #materialGallery #materialIndex{display:none}
+#advanced{position:relative}
+#labControls[hidden]{display:none!important}
+.preset-popover{position:absolute;bottom:calc(100% + 14px);left:10px;width:250px;padding:10px;background:#092567ed;border:1px solid #d9e0f780;border-radius:14px;box-shadow:0 16px 40px #00134445;backdrop-filter:blur(16px);z-index:10}
+.preset-popover button{display:flex;align-items:center;gap:14px;width:100%;min-height:60px;padding:10px;border:0;border-radius:8px;background:transparent;text-align:left;color:var(--paper);font-size:14px}
+.preset-popover button:hover,.preset-popover button:focus-visible{background:#e8ecff14}
+.preset-popover small{display:block;margin-top:5px;font-size:11px;color:#c2ccea}
+.effect-swatch{flex:0 0 34px;height:34px;border-radius:50%;border:1px solid #f5ecd96b;background:linear-gradient(130deg,#889eca 10%,#f7e7a9 35%,#a4e7e8 45%,#b9a7d1 60%,#e9dcc6 80%)}
+.effect-swatch.soft{filter:saturate(.45);background:conic-gradient(#e8dfd4,#bfc5e1,#d7efd9,#e3cce3,#e8dfd4)}
+.effect-swatch.vivid{background:conic-gradient(from 30deg,#082277,#1777ef,#80eeeb,#efe2a7,#f872b9,#233ed2,#082277)}
+.effect-swatch.fine{background:linear-gradient(130deg,#7c84ad 30%,#becbd3 44%,#fff2c1 47%,#85e5ef 50%,#ccafdb 54%,#8c99b5 65%)}
+.effect-check{margin-left:auto;width:19px;height:19px;border-radius:50%;color:#163580;background:var(--paper);text-align:center;line-height:19px;opacity:0}
+[aria-pressed=true]>.effect-check{opacity:1}
+@media(max-width:950px){.preset-popover{left:auto;right:0}}
+@media(max-width:600px){.preset-popover{width:240px}}

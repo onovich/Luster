@@ -19,7 +19,8 @@
     "test:loading": "node tests/loading.cjs",
     "assets:images": "python tools/pack-images.py",
     "test:artwork": "node tests/artwork.cjs",
-    "test:usability": "node tests/usability.cjs"
+    "test:usability": "node tests/usability.cjs",
+    "test:effects": "node tests/effects.cjs"
   },
   "description": "Art-directed spectral foil rendering in WebGL."
 }

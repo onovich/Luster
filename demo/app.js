@@ -1,3 +1,4 @@
+import {effects,effectParameters} from './effect-presets.js';
 import {createMaterialGallery} from './material-gallery.js';
 import {captureTransition} from './scheme-transition.js';
 import {FoilRenderer} from '../src/index.js';
@@ -10,7 +11,7 @@ import {CardMotion} from './card-motion.js';
 const $=id=>document.getElementById(id), renderers=[],pose=new PoseTween(0),errors=[],cardMotions=[];
 const artNames=['orbit','silk','ribbon','facet','diagonal','fold','grain','wave'];
 const gallery=createMaterialGallery($('materialGallery'),artNames,selectMaterial);
-let showcase=true,switching=false;
+let showcase=true,switching=false,effect='original',effectTween=null;
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
 let variant='B14',params={...presets.B14,strength:.3},mode=null,time=0,last=0,frame=0,drawCount=0,ready=false;
 function failure(error){document.body.dataset.load='error';$('retry').hidden=false;delete $('status').dataset.ready;errors.push(error.message);$('status').textContent=error.message;console.error(error);}
@@ -28,22 +29,39 @@ function tick(ms){
  if(mode){time+=dt;if(mode==='play')pose.set(4*Math.sin(time*Math.PI/4));
  else {const phase=time%3.16,side=phase<1.58?-1:1,t=Math.max(0,Math.min(1,(phase%1.58-1.2)/.38)),q=t*t*t*(t*(t*6-15)+10);pose.set(side*4*(1-2*q));}}
  else pose.advance(dt);
+ if(effectTween){const t=Math.min(1,(ms-effectTween.start)/380),q=t*t*(3-2*t);for(const key of Object.keys(effectTween.to))if(typeof effectTween.to[key]==='number')params[key]=effectTween.from[key]+(effectTween.to[key]-effectTween.from[key])*q;if(t===1){params=effectTween.to;effectTween=null;}}
  for(const motion of cardMotions)motion?.advance(dt);
- draw();if(mode||pose.active||cardMotions.some(m=>m?.active))frame=requestAnimationFrame(tick);
+ draw();if(effectTween||mode||pose.active||cardMotions.some(m=>m?.active))frame=requestAnimationFrame(tick);
 }
-function patch(values){params={...params,...values};draw();}
-async function restore(next=variant){
+function patch(values){effectTween=null;params={...params,...values};draw();}
+async function restore(next=variant,keepEffect=false){
  if(!ready||switching)return;
- switching=true;setSchemeBusy(true);
+ effectTween=null;switching=true;setSchemeBusy(true);
  stop();$('status').textContent='加载…';$('variant').disabled=true;let transition;
- try{const source=await loadShader(next);if(next!==variant&&!reducedMotion.matches){pose.set(pose.angle);draw();transition=captureTransition(renderers);}for(const r of renderers)r.setVariantSource(next,source);variant=next;params={...presets[next]};$('variant').value=next;if(next==='B11'&&+$('inspect').value===5)$('inspect').value=0;draw();if(transition)await transition.play();$('status').textContent='8 / 8 ready';$('status').dataset.ready='true';}
+ try{const source=await loadShader(next);if(next!==variant&&!reducedMotion.matches){pose.set(pose.angle);draw();transition=captureTransition(renderers);}for(const r of renderers)r.setVariantSource(next,source);variant=next;if(!keepEffect)effect='original';params=effectParameters(next,effect);syncEffects();$('variant').value=next;if(next==='B11'&&+$('inspect').value===5)$('inspect').value=0;draw();if(transition)await transition.play();$('status').textContent='8 / 8 ready';$('status').dataset.ready='true';}
  catch(error){$('variant').value=variant;failure(error);}finally{transition?.dispose();switching=false;setSchemeBusy(false);}
 }
 buildControls($('controls'),(id,value)=>{if(id==='angle'){stop();pose.set(value);draw();}else patch({[id]:value});});
 for(const id of ['angle','light','strength'])$('primaryControls').append($(id).closest('label'));
-function setSchemeBusy(busy){for(const id of ['variant','left','center','right'])$(id).disabled=busy;}
-for(const id of ['left','center','right'])$(id).onclick=()=>restore(variant==='B14'?'B11':'B14');
+function setSchemeBusy(busy){for(const id of ['variant','left','center','right'])$(id).disabled=busy;for(const button of $('effectPresets').children)button.disabled=busy;}
+for(const id of ['left','center','right'])$(id).onclick=()=>restore(variant==='B14'?'B11':'B14',true);
 for(const id of ['play','dwell'])$(id).onclick=()=>{if(mode===id){stop();pose.set(pose.angle);draw();}else{stop();mode=id;time=id==='play'?Math.asin(pose.angle/4)*4/Math.PI:0;$(id).textContent=id==='play'?'Auto rotate':'Pause';$(id).setAttribute('aria-pressed','true');requestTick();}};
+function syncEffects(){for(const button of $('effectPresets').children)button.setAttribute('aria-pressed',String(button.dataset.effect===effect));}
+function selectEffect(next){
+ if(!ready||switching)return;
+ effect=next;const target={...effectParameters(variant,next),light:params.light};
+ if(reducedMotion.matches){effectTween=null;params=target;draw();}
+ else {effectTween={from:{...params},to:target,start:performance.now()};requestTick();}
+ syncEffects();$('advanced').open=false;$('advanced').querySelector('summary').focus();
+}
+for(const [id,item] of Object.entries(effects)){
+ const button=document.createElement('button');button.type='button';button.dataset.effect=id;button.disabled=true;
+ button.innerHTML=`<span class="effect-swatch ${id}" aria-hidden="true"></span><span>${item.name}<small>${item.description}</small></span><span class="effect-check" aria-hidden="true">✓</span>`;
+ button.onclick=()=>selectEffect(id);$('effectPresets').append(button);
+}
+syncEffects();
+document.addEventListener('pointerdown',event=>{if(!$('advanced').contains(event.target))$('advanced').open=false;});
+$('effectPresets').onkeydown=event=>{const buttons=[...$('effectPresets').children],index=buttons.indexOf(document.activeElement);if(['ArrowDown','ArrowUp','Home','End'].includes(event.key)){event.preventDefault();buttons[event.key==='Home'?0:event.key==='End'?3:(index+(event.key==='ArrowDown'?1:3))%4].focus();}};
 $('enabled').oninput=()=>patch({enabled:$('enabled').checked});$('inspect').oninput=draw;
 $('variant').onchange=()=>restore($('variant').value);$('restore').onclick=()=>restore();
 $('resetLocal').onclick=()=>patch(Object.fromEntries(['flatFloor','localBoost','threshold','softness','whiteGain'].map(k=>[k,presets[variant][k]])));
@@ -115,7 +133,7 @@ async function init(){
  else {document.body.dataset.load='error';$('status').textContent=`材质已加载 ${completed} / 8 · ${errors[0]||'加载失败'}，请重试`;$('retry').hidden=false;}
 }
 // Small inspectable demo API, also used by regression tests. It is not the renderer API.
-window.foilDemo={get renderers(){return renderers;},state:()=>({ready,switching,variant,parameters:{...params},angle:pose.angle,target:pose.target,active:pose.active,cardOffsets:cardMotions.map(m=>m.offset),drawCount,errors,glErrors:renderers.filter(Boolean).map(r=>r.gl.getError())}),setAngle(angle){stop();pose.set(angle);draw();},go,restore,patch,capture(){draw();return renderers.filter(Boolean).map(r=>r.canvas.toDataURL());}};
+window.foilDemo={get renderers(){return renderers;},state:()=>({ready,switching,variant,effect,effectTransition:!!effectTween,parameters:{...params},angle:pose.angle,target:pose.target,active:pose.active,cardOffsets:cardMotions.map(m=>m.offset),drawCount,errors,glErrors:renderers.filter(Boolean).map(r=>r.gl.getError())}),setAngle(angle){stop();pose.set(angle);draw();},go,restore,patch,capture(){draw();return renderers.filter(Boolean).map(r=>r.canvas.toDataURL());}};
 window.addEventListener('pagehide',()=>{cancelAnimationFrame(frame);for(const r of renderers)r?.dispose();});
 window.addEventListener('webglcontextlost',e=>{e.preventDefault();stop();cancelAnimationFrame(frame);failure(new Error('WebGL 已中断，请刷新'));},true);
 window.addEventListener('keydown',event=>{if(event.key==='Escape'&&$('advanced').open){$('advanced').open=false;$('advanced').querySelector('summary').focus();}});

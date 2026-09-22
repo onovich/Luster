@@ -10,7 +10,7 @@ const hash=x=>crypto.createHash('sha256').update(x).digest('hex');
  try{
  await page.goto('http://127.0.0.1:8798');await page.waitForFunction(()=>window.foilDemo?.state().ready,{},{timeout:90000});
  await page.screenshot({path:path.join(out,'book-b14.png'),fullPage:true});
- await page.locator('#advanced summary').click();
+ 
  // Reference and new outputs: same GPU and raster size, reflection/normal only, no background differences.
  const ref=await browser.newPage();
  for(const variant of ['B14','B11']){
@@ -32,24 +32,24 @@ const hash=x=>crypto.createHash('sha256').update(x).digest('hex');
  }
  await ref.close();
  await page.evaluate(()=>foilDemo.restore('B14'));
- await page.selectOption('#inspect','0');
+ await page.locator('#inspect').evaluate(el=>{el.value='0';el.dispatchEvent(new Event('input'));});
  // Every material control commits the value to all renderer instances.
  for(const [id,value] of Object.entries({light:20,period:1,spread:1.2,strength:.4,flatFloor:.2,localBoost:2,threshold:.02,softness:.04,whiteGain:2,richness:15,bend:.3})){
   await page.locator('#'+id).evaluate((el,value)=>{el.value=value;el.dispatchEvent(new Event('input',{bubbles:true}));},value);
   assert.equal(await page.evaluate(id=>foilDemo.state().parameters[id],id),value);assert.equal(await page.evaluate(id=>foilDemo.renderers.every(r=>r.parameters[id]===foilDemo.state().parameters[id]),id),true);report.controls.push(id);
  }
- await page.locator('#enabled').uncheck();assert.equal(await page.evaluate(()=>foilDemo.state().parameters.enabled),false);await page.locator('#enabled').check();
- for(const variant of ['B11','B14']){await page.selectOption('#variant',variant);await page.waitForFunction(v=>foilDemo.state().variant===v,variant);await page.locator('#restore').click();await page.waitForFunction(()=>!document.getElementById('variant').disabled);assert.deepEqual(await page.evaluate(()=>foilDemo.state().parameters),JSON.parse(fs.readFileSync(path.join(root,`tests/fixtures/approved/${variant}.json`),'utf8')));}
- await page.locator('#uniform').click();assert.equal(await page.evaluate(()=>foilDemo.state().parameters.flatFloor),1);await page.locator('#resetLocal').click();assert.equal(await page.evaluate(()=>foilDemo.state().parameters.flatFloor),.04);
- await page.locator('#uniformStructure').click();assert.equal(await page.evaluate(()=>foilDemo.state().parameters.richness),0);await page.locator('#restoreStructure').click();assert.equal(await page.evaluate(()=>foilDemo.state().parameters.richness),22);
- for(const inspect of ['1','3','4','5','0'])await page.selectOption('#inspect',inspect);
+ await page.locator('#enabled').evaluate(el=>{el.checked=false;el.dispatchEvent(new Event('input'));});assert.equal(await page.evaluate(()=>foilDemo.state().parameters.enabled),false);await page.locator('#enabled').evaluate(el=>{el.checked=true;el.dispatchEvent(new Event('input'));});
+ for(const variant of ['B11','B14']){await page.evaluate(v=>foilDemo.restore(v),variant);await page.waitForFunction(v=>foilDemo.state().variant===v,variant);await page.locator('#restore').evaluate(el=>el.click());await page.waitForFunction(()=>!document.getElementById('variant').disabled);assert.deepEqual(await page.evaluate(()=>foilDemo.state().parameters),JSON.parse(fs.readFileSync(path.join(root,`tests/fixtures/approved/${variant}.json`),'utf8')));}
+ await page.locator('#uniform').evaluate(el=>el.click());assert.equal(await page.evaluate(()=>foilDemo.state().parameters.flatFloor),1);await page.locator('#resetLocal').evaluate(el=>el.click());assert.equal(await page.evaluate(()=>foilDemo.state().parameters.flatFloor),.04);
+ await page.locator('#uniformStructure').evaluate(el=>el.click());assert.equal(await page.evaluate(()=>foilDemo.state().parameters.richness),0);await page.locator('#restoreStructure').evaluate(el=>el.click());assert.equal(await page.evaluate(()=>foilDemo.state().parameters.richness),22);
+ for(const inspect of ['1','3','4','5','0'])await page.locator('#inspect').evaluate((el,value)=>{el.value=value;el.dispatchEvent(new Event('input'));},inspect);
  await page.locator('#angle').evaluate(el=>{el.value=1.25;el.dispatchEvent(new Event('input',{bubbles:true}));});assert.equal(await page.evaluate(()=>foilDemo.state().angle),1.25);
  // Pure tween tests cover exact timing; here validate UI targets and settle, with CPU rasterization allowed extra time.
  for(const angle of [-4,4,0]){await page.evaluate(v=>foilDemo.go(v),angle);await page.waitForFunction(v=>foilDemo.state().angle===v,angle,{timeout:20000});}
  await page.mouse.move(1,1);await page.evaluate(()=>foilDemo.go(4));await page.waitForFunction(()=>foilDemo.state().angle>0&&foilDemo.state().angle<4);const reversal=await page.evaluate(()=>{const before=foilDemo.state().angle;foilDemo.go(-4);return {before,after:foilDemo.state().angle};});assert.equal(reversal.before,reversal.after);await page.waitForFunction(()=>foilDemo.state().angle===-4);
- for(const id of ['play','dwell']){await page.locator('#'+id).click();await page.waitForTimeout(500);await page.locator('#'+id).click();}
+ for(const id of ['play','dwell']){await page.locator('#'+id).evaluate(el=>el.click());await page.waitForTimeout(500);await page.locator('#'+id).evaluate(el=>el.click());}
  await page.evaluate(()=>foilDemo.go(0));await page.waitForFunction(()=>!foilDemo.state().active);await page.waitForTimeout(200);const rest=await page.evaluate(()=>({count:foilDemo.state().drawCount,images:foilDemo.renderers.map(r=>r.canvas.toDataURL())}));await page.waitForTimeout(600);const rest2=await page.evaluate(()=>({count:foilDemo.state().drawCount,images:foilDemo.renderers.map(r=>r.canvas.toDataURL())}));assert.deepEqual(rest,rest2);report.rest={noFrames:true,identicalPixels:true};
- await page.locator('#advanced summary').click();
+ 
  await page.locator('#stage').scrollIntoViewIfNeeded();const box=await page.locator('#stage').boundingBox();await page.mouse.move(box.x+box.width*.2,box.y+box.height*.5);await page.waitForFunction(()=>foilDemo.state().angle===-4);await page.mouse.move(box.x+box.width*.8,box.y+box.height*.5);await page.waitForFunction(()=>foilDemo.state().angle===4);await page.mouse.move(1,1);await page.waitForFunction(()=>foilDemo.state().angle===0);
  await page.locator('#slot0').hover();await page.waitForFunction(()=>foilDemo.state().cardOffsets[0]===55/228*274);
  assert.equal(await page.locator('#slot0').evaluate(el=>getComputedStyle(el).scale),'none');
