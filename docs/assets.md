@@ -10,7 +10,7 @@ The project owner permits reuse here of the example images, interactions and boo
 - `base-3.png` through `base-7.png`: neutral sleeve examples without application action icons.
 - `demo/assets/normals/normal-*.rgba`: eight fixed packed normal fields. Five are image-based estimates, with three flipped variants; these are not measured scans.
 - `tests/fixtures/approved/`: material-only references. No original full application HTML or embedded application screenshot is distributed.
-- `docs/screenshots/` and the cover show the public Luster demo or its material rendering only.
+- `docs/screenshots/` contains public Luster demo captures. `docs/social-preview.png` is a generated cover illustration based on the current cobalt album screenshot, with editable typography in `docs/social-preview.svg`; it is not a literal runtime capture.
 
 The runtime, tests and capture tools use repository-relative inputs. Browser tooling accepts `PLAYWRIGHT_PATH` and `CHROME_PATH` overrides; no user profile, machine path, original project directory, account data or business configuration is required.
 

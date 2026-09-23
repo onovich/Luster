@@ -2,43 +2,22 @@
 
 [简体中文](README.zh-CN.md)
 
-A reusable WebGL foil material that adds angle-dependent iridescent highlights to images.
+Interactive WebGL card and foil materials, with reflections that respond to angle and light.
 
-[Live demo](https://luster.onovich.com/)
+![Luster — interactive foil materials](docs/social-preview.png)
 
-![Luster spectral foil material](docs/social-preview.png)
+[Live demo](http://luster.onovich.com/) · [Integration](docs/guide.md) · [Card materials](docs/card-materials.md)
 
-## Try it
+Explore eight card surfaces in Album or Material view. Toggle the foil layer and adjust angle, light and intensity.
 
-Requires Python 3 and a browser with WebGL 1 and `OES_standard_derivatives`. From the repository root:
+## Run locally
+
+Requires Python 3 and a browser supporting WebGL 1 with `OES_standard_derivatives`.
 
 ```sh
 python -m http.server 8798 --bind 127.0.0.1
 ```
 
-Open [localhost:8798](http://127.0.0.1:8798). Move the pointer to tilt the book, switch between B14/B11 presets, or explore individual materials and optical controls.
+Open [localhost:8798](http://127.0.0.1:8798).
 
-![Luster book demo](docs/screenshots/book-b14.png)
-
-## Integrate
-
-Serve `src/` with your application. Supply a canvas, decoded image and packed normal bytes (`Uint8Array`):
-
-```js
-import { FoilRenderer } from './src/index.js';
-
-const material = await FoilRenderer.create(canvas, {
-  normal: { data: packedRGBABytes, width: 512, height: 512 },
-  background: decodedImage,
-});
-material.render({ angle: -4 }); // degrees; call again when the angle changes
-material.dispose(); // when finished
-```
-
-[Integration guide](docs/guide.md) · [Normal format](docs/textures.md) · [Architecture](docs/architecture.md) · [Tests and compatibility](docs/verification.md)
-
-## Status and license
-
-An art-directed spectral approximation for material experiments and interactive displays. See the verification notes for compatibility and performance limits.
-
-No open-source license is currently included. See [asset permissions](docs/assets.md) before reusing the sample artwork.
+Experimental, art-directed rendering. No open-source license is included; see [asset permissions](docs/assets.md) before reusing the artwork.

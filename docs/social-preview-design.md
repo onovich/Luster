@@ -1,18 +1,15 @@
 # Luster cover design ledger
 
-- Promise: art-directed spectral foil rendering in WebGL.
-- Proof: real B14 output, fixed wrinkle structure, angle-dependent spectral color.
-- Exclude: business UI, game rules, local machine information, invented performance claims.
-- Evidence mode: runtime-tested; public demo, `src/shaders/B14.frag`, `src/webgl/renderer.js`.
-- Source diagnosis: book scene identity 3/3, beauty 3/3, composition readiness 1/3, noise 2/3, information deficit 0/3. Material sample extraction removes controls while retaining the actual optical signature.
-- Route: source hybrid, interpretation level 2, isolated complete material artifacts. Editable SVG typography over embedded runtime PNGs (normal fields 0, 1 and 3 at −4°, 0° and +4°); no generated approximation of the effect.
-- Keep: exact rendered wrinkle geometry and spectral highlights. Remove: browser controls and application-specific text. Repair: scale and focal hierarchy. Supplement: exact project name and evidenced descriptor.
-- Aspect fit: full 488×548 material samples map proportionally into portrait swatches without cropping or inert gutters. Overlap is deliberate, with bounded card silhouettes.
-- Material: pale blue-gray from demo background, navy from the book, warm paper typography surface. Spectral color comes from the real shader.
-- Regions: left identity/copy; right overlapping material specimens; bottom short optical caption. Essential content stays within about 72 px of the canvas edge.
-- Lines: none added as decoration; specimen edges are bounded material silhouettes, internal lines are inherited wrinkle geometry from rendered evidence.
-- Output: `social-preview.svg`, `social-preview.png`, 1280×640; thumbnail review at 320×160 on light and dark.
-- Version: initial cover, no previous cover replaced. Promoted after mechanical and full-size/light/dark thumbnail review.
-- Authorization: README/asset creation and repository push requested. GitHub Social Preview settings upload not requested.
-
-Validation: PNG is 106,018 bytes; SVG includes title/description and embedded local evidence. Full-size and both thumbnail reviews passed. Rightmost swatch was moved inward to keep its complete silhouette within the safe area. No GitHub settings upload was performed.
+- Promise: interactive foil materials, with angle-responsive reflections.
+- Evidence: runtime-tested public demo; all eight cards loaded without JavaScript or WebGL errors. Implementation references: `demo/app.js`, `src/index.js`, and `docs/card-materials.md`.
+- Proof: eight distinct card surfaces, transparent sleeves and independent live foil. Exclude: tuning controls, performance claims, private project information and game business content.
+- Source diagnosis: current cobalt album screenshot; identity 3/3, beauty 3/3, composition readiness 2/3, noise 2/3, information deficit 0/3.
+- Route: screenshot-directed illustration hybrid, interpretation level 2. Generated artwork reframes the current demo as one continuous studio scene; it is a cover illustration, not a literal runtime capture.
+- Keep: cobalt leather binder, chrome rings, translucent sleeves and eight distinct iridescent card designs. Remove: navigation, sliders and other page controls. Repair: wide composition and visual hierarchy. Supplement: exact editable project name and descriptor.
+- Aspect fit: the source screenshot is reframed into a 2:1 illustration, then rendered at 1280×640. The complete binder occupies the lower region; copy occupies the upper region without covering the cards.
+- Material: cobalt studio background and leather, cream typography, silver hardware and spectral card highlights. Lines come from stitching, sleeve boundaries and hardware; no decorative framing is added.
+- Typography: “Luster” and “Interactive foil materials”, retained as editable SVG text over embedded illustration artwork.
+- Output: `social-preview.svg` and `social-preview.png`; PNG is 329,742 bytes at 1280×640.
+- Version: replaces the original pale material-swatch cover at the user's request. The previous version remains in Git history.
+- Review: full-size image and 320×160 thumbnails on light and dark backgrounds inspected. The title remains clear, all eight cards are visible, and the complete binder fits within the canvas. Mechanical size and format checks passed; promoted after review.
+- Authorization: README cover replacement and repository push authorized. GitHub Social Preview settings upload was not requested or performed.
