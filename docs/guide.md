@@ -1,77 +1,135 @@
-# 原理与移植
+# Integration guide
 
-## 不需要 Web 知识的输入输出模型
+[简体中文](guide.zh-CN.md)
 
-把 Luster 想成一个每次输入新角度就计算一次的材质函数：输入底图、固定法线、光源方向与参数，输出一张反光后的图像。底图可以是任何照片或图案；书本只是一种摆放方式。模型并不需要卡牌、收藏、账号、存档或游戏逻辑。
+Luster renders angle-dependent reflections over an image using WebGL. Supply an image, a surface normal map and lighting parameters, then render at the desired angle. Your application controls the layout, interaction and animation.
 
-| 输入 | 含义 / 单位 |
+There are two renderers:
+
+- `FoilRenderer` adds a reflective film to a static image and produces an opaque canvas.
+- `LayeredRenderer` gives the card beneath the film its own dynamic material. It combines both responses in one draw and supports a card sliding out of its sleeve. See [card materials](card-materials.md) for its surface maps and API.
+
+The album in the demo is one possible presentation; neither renderer depends on the album layout.
+
+## Render your first image
+
+Serve the repository over HTTP, as described in the [README](../README.md). The browser must support WebGL 1, high-precision fragment floats and `OES_standard_derivatives`.
+
+Save this example as an HTML file at the repository root and open it through the local server. It uses the included artwork and normal map; replace their URLs to use your own assets.
+
+```html
+<canvas id="material" style="width:244px;height:274px"></canvas>
+<script type="module">
+  import {FoilRenderer} from './src/index.js';
+
+  const background = new Image();
+  background.src = './demo/assets/images/art-orbit.webp';
+  await background.decode();
+
+  const response = await fetch('./demo/assets/normals/normal-0.rgba');
+  if (!response.ok) throw new Error(`Normal map: HTTP ${response.status}`);
+  const data = new Uint8Array(await response.arrayBuffer());
+
+  const renderer = await FoilRenderer.create(
+    document.querySelector('#material'),
+    {
+      variant: 'B14',
+      background,
+      normal: {data, width: 512, height: 512},
+      width: 488,
+      height: 548,
+    },
+  );
+
+  renderer.render({angle: 0});
+
+  // After an input changes, update the parameters and draw again.
+  renderer.setParameters({light: 25, strength: 0.3});
+  renderer.render({angle: 2});
+
+  // Call renderer.dispose() when removing this view.
+</script>
+```
+
+The normal map describes surface orientation at each pixel. Luster uses a packed XY16 format: four bytes store two 16-bit normal components. These bytes are data, not image colors; the alpha byte is part of the normal. The [texture specification](textures.md) explains encoding, orientation and filtering.
+
+Backgrounds should be decoded image or canvas elements. Cross-origin images need CORS permission. Use an `HTMLImageElement` or `HTMLCanvasElement` rather than `ImageBitmap` so texture flipping and premultiplication follow the renderer's upload settings.
+
+## Parameters and presets
+
+`B11` and `B14` are two film shader variants. B11 uses a fixed grating spacing; B14 also varies local grating direction and spacing with the surface normal. A grating is the microscopic directional structure used here to produce colored reflections.
+
+| Parameter | Meaning |
 | --- | --- |
-| background | 已解码图片，显示颜色；当前使用约 2.2 gamma 转线性再合成 |
-| normal | RGBA uint8 数据，RG 打包 16 位 X、BA 打包 16 位 Y；不是颜色 |
-| angle | 绕局部 Y 轴旋转，度；演示固定端点 ±4°，核心允许其他有限角度 |
-| light | 固定世界方向的角度，度；中心光源与正交视线共用方向 |
-| period | 基础光栅间距，微米 μm |
-| spread | 五点光源近似的偏移角，度 |
-| strength | 底图合成时的反光增益，默认 0.3 |
-| enabled | 关闭时令 strength=0 |
-| flatFloor / localBoost | 平整区和褶皱区的彩光效率增益 |
-| threshold / softness | 按法线 XY 长度选取褶皱区域的阈值和过渡宽度，无量纲 |
-| whiteGain | 塑料白光增益 |
-| richness | B14 固定相位中的高度关联 K，无量纲 |
-| bend | B14 跨沟槽方向的高斯接受宽度，无量纲；不是弯曲动画 |
+| `angle` | Surface rotation around its local Y axis, in degrees; passed to `render()` |
+| `light` | World-space angle shared by the central light and viewing direction, in degrees |
+| `period` | Base grating spacing, in micrometers (μm) |
+| `spread` | Angular offset of the surrounding light samples, in degrees |
+| `strength` | Film reflection gain; default `0.3` |
+| `enabled` | Enables film reflection; `false` sets its gain to zero in normal composition |
+| `flatFloor`, `localBoost` | Colored reflection gains for flatter and more wrinkled regions |
+| `threshold`, `softness` | Boundary and transition width used to identify wrinkled regions from the normal map |
+| `whiteGain` | White specular reflection gain |
+| `richness` | B14's coupling between surface height and grating phase |
+| `bend` | B14's angular acceptance width across the grating grooves; controls reflection response |
 
-输出为不透明 RGB canvas。它将反光与调用方底图合成，不输出可直接盖在任意底图上的透明膜。检查模式 1 可取得纯反光，另一个引擎应在线性空间完成同一合成。
+The shared preset values are `period=0.7`, `spread=0.4`, `strength=0.3`, `localBoost=4`, `softness=0.06`, `whiteGain=4` and `enabled=true`.
 
-## 从法线到颜色
-
-1. 解码固定 XY，得到 `N0 = normalize(X, Y, sqrt(max(1-X²-Y², .001)))`。这保留冻结版本的数值保护。
-2. B11 将 X 轴投影到切平面：`T0 = normalize((1,0,0) - N0*N0.x)`，周期仍为 `period`。
-3. B14 指定固定表面相位 `Phi(X)=X.x+K*X.z`。令 `G=(1,0,K)`，切平面梯度 `Gs=G-N0*dot(N0,G)`；`T0=normalize(Gs)`，`dLocal=period/max(length(Gs), .15)`。法线不随时间变，局部光栅方向和间距因此固定在塑料上。这是人为设计的关联，不是实测应变。
-4. `B0=normalize(cross(N0,T0))`。将 N/T/B 共同绕 Y 旋转实际插值角度，光源 L 和视线 V 保持世界方向不动。向量均从表面朝外。
-5. 只计算一阶峰值 `lambda = 1000*dLocal*abs(dot(T,L+V))`，单位 nm。B11 使用基础 period。平面中央点光特例是 `lambda=2000*d*abs(sin(light-angle))`。
-6. 每个像素取五个光源样本；每个光源积分 64 个波长，采样中心为 `380+(k+.5)*400/64 nm`，覆盖 380–780nm。按峰值附近高斯能量乘解析 CIE XYZ 近似，累积后转换到线性 RGB。没有彩虹贴图。
-7. 波长宽度基数为 18nm，加上屏幕导数过滤。B14 将导数幅度截到 60nm；B11 保留原式。跨沟槽因子为 `exp(-.5*(dot(B,L+V)/width)²)`；B11 width=.09，B14 width=bend=.45。
-8. 用法线 XY 长度的 smoothstep 产生固定褶皱选择，混合 flatFloor 和 localBoost。白光由同一法线、半程向量、粗糙度 .07、Fresnel 近似得到。最终 `base*(1-.08*gain*min(efficiency,1))+reflected*gain`，限制到 0–1，再用 1/2.2 gamma 输出。
-
-基础光栅相位匹配关系可参考 Jos Stam 的 [GPU Gems 第 8 章](https://developer.nvidia.com/gpugems/gpugems/part-i-natural-effects/chapter-8-simulating-diffraction)。本实现保留其方向投影思想，但使用上述可见波段与 CIE 近似，不沿用旧示例的波长区间或 RGB 色带。
-
-没有端点图叠化、色相循环、时间噪声或纹理漂移。停稳后参数不变，输出也不变，演示不再请求动画帧。
-
-## 两套冻结参数
-
-共享：period=.7μm、spread=.4°、strength=.3、localBoost=4、softness=.06、whiteGain=4、enabled=true、左右 ±4°、tween=.38s。
-
-| 方案 | light | flatFloor | threshold | richness | 跨沟槽宽度 |
+| Variant | `light` | `flatFloor` | `threshold` | `richness` | Cross-groove width |
 | --- | --- | --- | --- | --- | --- |
-| B11 | 23° | .03 | .035 | 不使用 | .09 固定 |
-| B14 | 24.39° | .04 | .027 | 22 | .45 |
+| B11 | 23° | 0.03 | 0.035 | — | Fixed at 0.09 |
+| B14 | 24.39° | 0.04 | 0.027 | 22 | `bend=0.45` |
 
-权威数据在 `src/core/presets.js`，测试与冻结 JSON 逐字段比较。恢复预设恢复全部材质参数；不会擅自改变当前姿态。
+[Preset definitions](../src/core/presets.js) contain the complete values; [parameter validation](../src/core/parameters.js) defines numeric ranges. Restore a preset with `renderer.setParameters(presets.B14)` after importing `presets`. This restores parameters without changing the angle or switching the shader variant.
 
-## 接入和生命周期
+## Updates, animation and cleanup
 
-ES module 使用实例见根 README。`FoilRenderer.create` 读取本地 shader，一次创建独立 WebGL 上下文及 GPU 资源。公开方法：
+`create()` loads the shader and allocates a WebGL context and its resources. Parameter and texture updates take effect on the next `render()` call.
 
-- `setParameters(patch)`：合并参数；越界或 NaN 抛错。调用后再 render。
-- `render({angle, inspect, kind})`：立即绘制，无全局时钟；kind=2 是底图合成，0 是平面诊断，1 是固定褶皱暗底诊断。诊断 kind 0/1 延续基准的固定 .8 gain，仅用于校验。
-- `setNormal({data,width,height})`：替换已打包字节，尺寸可变化；先验证再上传。
-- `setBackground(image)`：替换已解码 HTMLImageElement/HTMLCanvasElement 等 WebGL 图片源；跨域图片需 CORS。不要传 ImageBitmap，避免宿主对翻转/预乘选项的差异。
-- `resize(width,height)`：设置正整数实际像素尺寸；CSS 尺寸由宿主决定。
-- `setVariantSource('B11'|'B14', source)`：编译并替换方案；失败保留原 program；成功恢复该方案参数。`loadShader` 可读取随包 shader。
-- `dispose()`：释放 program、buffer、两张 texture，可重复调用。已释放实例不可复用。
+| Method | Purpose |
+| --- | --- |
+| `setParameters(patch)` | Merge material parameters; reject out-of-range or non-finite numeric parameters |
+| `render({angle, inspect, kind})` | Draw immediately; defaults are `angle=0`, `inspect=0`, `kind=2` |
+| `setNormal({data, width, height})` | Validate and upload a replacement XY16 map |
+| `setBackground(image)` | Upload a decoded background image |
+| `resize(width, height)` | Set the canvas resolution in positive integer pixels; CSS controls its display size |
+| `setVariantSource(variant, source)` | Compile B11 or B14 shader source and restore its preset; retain the previous program if compilation fails |
+| `dispose()` | Release GPU resources; safe to call more than once |
 
-正常运行需要 WebGL 1、高精度 fragment float 和 OES_standard_derivatives。上下文丢失时演示显示刷新提示；嵌入应用应销毁并重新创建实例。八袋示例用八个上下文以便和基准逐像素比较；大量实例应改为单上下文共享 program/atlas/viewport。不要将示例上下文数量当作生产性能建议。
+For runtime variant changes, `loadShader` in `src/webgl/resources.js` loads the shader text accepted by `setVariantSource()`. After switching, call `render()` again. If the WebGL context is lost, dispose of the instance and create a replacement.
 
-`PoseTween.to(next)` 从当前角度重启五次平滑曲线 `6t⁵−15t⁴+10t³`。中途反向时角度连续；速度会重置，不承诺速度一阶连续。`advance(deltaSeconds)` 输入非负秒数。按真实动画帧推进，将输出角度同时给材质和可选的几何变换。左右区域选择和 hover 只在 demo 实现。
+The renderer has no animation loop. Draw when input changes, and request animation frames only while a transition is active. The optional `PoseTween` helper interpolates angles with a quintic easing curve. Its defaults are a starting angle of −4° and a duration of 0.38 seconds. Call `to(targetAngle)`, advance it with `advance(deltaSeconds)`, and pass the returned angle to `render()`. Retargeting preserves the current angle but restarts the easing curve, so velocity may change abruptly. The demo uses a ±4° range; the core accepts any finite angle.
 
-## 移植到任意渲染栈
+For diagnostics, `inspect=1` shows reflection only and `inspect=3` shows the decoded normal. `kind=0` tests a flat surface; `kind=1` uses the normal map over a dark background. These two diagnostic kinds use a fixed gain of 0.8. Normal image composition uses `kind=2` and the configured strength.
 
-按纹理文档逐字节解码，先让“法线检查”与这里一致，再迁移光栅计算。将角度转换成弧度只做一次。保留 L/V 朝外约定和 T/B 手性。不要对 packed bytes 做 sRGB 转换、预乘、硬件双线性或 mipmap。
+## How the film reflection works
 
-迁移 CIE 矩阵时检查目标语言的矩阵行列顺序。导数依赖实际渲染分辨率；改分辨率、精度或 gamma 会改变结果。目标栈若已有线性输出流程，去掉最终 gamma，避免二次编码。独立校验 ±4°、0°、中间角度与纯反光；不要拿变过底图的整页做相等性标准。
+The normal map fixes the surface structure. Rotating the surface changes which wavelengths reflect toward the viewer, while the light and viewing directions remain fixed in world space.
 
-可以降低波长/光源采样数提高速度，但那是新质量档，不再声称与冻结方案逐像素一致。当前未做移动 GPU 性能认证。
+1. Decode normal components X and Y, reconstruct Z as `sqrt(max(1-X²-Y², 0.001))`, and normalize the vector N.
+2. Build a local grating direction T and its perpendicular tangent B. B11 projects the X axis onto the surface. B14 projects `G=(1,0,richness)` onto it, then sets local spacing to `period / max(length(G-N*dot(N,G)), 0.15)`.
+3. Rotate N, T and B around Y by `angle`. With outward-facing light and view vectors L and V, calculate the first-order peak wavelength as `1000 * localPeriod * abs(dot(T,L+V))`, in nanometers.
+4. Evaluate five light samples and 64 wavelengths spanning 380–780 nm per sample. An analytic CIE color-matching approximation converts the accumulated spectrum to linear RGB. Screen-space derivatives broaden the spectral peak to reduce aliasing.
+5. Apply the wrinkle-dependent reflection gain and white specular reflection. Composite with the background in approximately linear color, then encode the result with a 1/2.2 gamma.
 
-## 近似的边界
+The film composition is `base*(1-0.08*gain*min(efficiency,1)) + reflected*gain`, clamped to the display range. `efficiency` is the wrinkle-dependent gain and `gain` is `strength` for normal composition. `LayeredRenderer` evaluates the dynamic card response before this film composition.
 
-这是美术调校的实时光谱近似：只有一阶衍射、固定同向正交光/视线、经验效率与白光合成。没有完整能量守恒、偏振、折射、多层薄膜干涉或测量校准。五份褶皱为图像估计，另外三份是翻转变体。颜色漂亮并不证明物理准确；Luster 名称不表示它是通用薄膜干涉 BSDF。
+The equations are implemented in [B11.frag](../src/shaders/B11.frag) and [B14.frag](../src/shaders/B14.frag). With unchanged inputs, the material output remains unchanged.
+
+## Porting and performance
+
+Start by matching the decoded normals, then port the reflection calculation and color composition. Preserve the texture byte layout, outward-facing light/view convention and tangent orientation. Convert degrees to radians once. Check matrix row/column conventions when translating the CIE-to-RGB conversion.
+
+`FoilRenderer` produces an opaque composite, not a reusable transparent overlay. To combine its film response with another renderer's surface, perform the composition in linear color. If the target renderer already encodes linear output for display, omit Luster's final gamma encoding.
+
+Use the same inputs at −4°, 0°, +4° and intermediate angles to compare a port with the included shader. Reflection-only and normal diagnostics help isolate differences. The repository's regression fixtures preserve specific shader outputs; changing resolution, precision, gamma or sampling can change those outputs.
+
+Reducing the number of wavelength or light samples can improve speed, but may change color and highlight smoothness. Evaluate that tradeoff on target devices and maintain separate visual references for each quality setting. Mobile GPU performance has not been validated.
+
+The demo uses one WebGL context per card. For larger collections, profile a shared-context design with shared programs and texture atlases or viewports. Avoid uploading unchanged textures during animation, and draw only visible materials.
+
+## Scope of the model
+
+Luster is an art-directed spectral approximation. Its film model uses first-order diffraction, an orthographic view aligned with the central light, and empirical reflection gains. It does not simulate polarization, refraction or multilayer thin-film interference, and is not calibrated against measured materials. The supplied film normals consist of five image-based estimates and three transformed variants.
+
+Use it for interactive visual effects. Applications requiring measured optical behavior need a calibrated material model and suitable source data.

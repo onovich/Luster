@@ -6,7 +6,7 @@
 
 ![Luster — 交互式镭射材质](docs/social-preview.png)
 
-[在线演示](http://luster.onovich.com/) · [接入指南](docs/guide.md) · [卡面材质](docs/card-materials.md)
+[在线演示](http://luster.onovich.com/) · [接入指南](docs/guide.zh-CN.md) · [卡面材质](docs/card-materials.md)
 
 在卡册或单卡视图中体验八种卡面，开关薄膜，调节角度、光向与反光强度。
 
