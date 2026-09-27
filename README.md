@@ -8,6 +8,8 @@ Interactive WebGL card and foil materials, with reflections that respond to angl
 
 [Live demo](http://luster.onovich.com/) · [Integration](docs/guide.md) · [Card materials](docs/card-materials.md)
 
+The browser-only Trial and Pro workbench is in pre-release. Its source and separate static builds are tracked in this repository; the live site still deploys the interactive demo. See [online workbench status](docs/online-workbench.md).
+
 Explore eight card surfaces in Album or Material view. Toggle the foil layer and adjust angle, light and intensity.
 
 ## Run locally

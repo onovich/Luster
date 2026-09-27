@@ -8,6 +8,8 @@
 
 [在线演示](http://luster.onovich.com/) · [接入指南](docs/guide.zh-CN.md) · [卡面材质](docs/card-materials.md)
 
+纯网页版 Trial／Pro 工作台目前处于发布前阶段，源码与分开的静态构建已纳入仓库；线上站点仍部署交互演示。参见[网页版工作台状态](docs/online-workbench.md)。
+
 在卡册或单卡视图中体验八种卡面，开关薄膜，调节角度、光向与反光强度。
 
 ## 本地运行

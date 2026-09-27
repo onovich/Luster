@@ -4,14 +4,17 @@ import {withCardLayer} from './card-layer.js';
 
 /** Card substrate and stationary sleeve in one fragment pass and one WebGL context. */
 export class LayeredRenderer extends FoilRenderer {
- static async create(canvas,{variant='B14',normal,background,surface,parameters={},width=488,height=548}={}){
-  const source=await loadShader(variant),r=new LayeredRenderer(canvas);
+ static async create(canvas,{variant='B14',normal,background,surface,parameters={},width=488,height=548,layout='card'}={}){
+  const source=await loadShader(variant),r=new LayeredRenderer(canvas,layout);
   try{r.setVariantSource(variant,source);r.setNormal(normal);r.setBackground(background);r.setSurface(surface);r.setParameters(parameters);r.resize(width,height);return r;}
   catch(error){r.dispose();throw error;}
  }
- constructor(canvas){super(canvas,{alpha:true});this.cardTexture=this.gl.createTexture();this.layers={card:1,film:1};this.cardPose={lift:0,turn:0};}
+ constructor(canvas,layout='card'){
+  if(!['card','full'].includes(layout))throw new RangeError('Unknown layer layout');
+  super(canvas,{alpha:true});this.layout=layout;this.cardTexture=this.gl.createTexture();this.layers={card:1,film:1};this.cardPose={lift:0,turn:0};
+ }
  setVariantSource(variant,source){
-  super.setVariantSource(variant,withCardLayer(source));
+  super.setVariantSource(variant,withCardLayer(source,{fullCanvas:this.layout==='full'}));
   for(const name of ['cardMap','cardType','cardAmount','filmAmount','cardLift','cardTurn','cardViewport'])this.uniforms[name]=this.gl.getUniformLocation(this.program,name);
   this.gl.uniform1i(this.uniforms.cardMap,2);
  }
@@ -31,9 +34,9 @@ export class LayeredRenderer extends FoilRenderer {
  setCardPose(lift,turn){this.ensureLive();if(!Number.isFinite(lift)||!Number.isFinite(turn))throw new RangeError('Invalid card pose');this.cardPose={lift,turn};}
  resize(width,height){super.resize(width,height);this.baseWidth=width;this.baseHeight=height;}
  render(options={}){
-  this.ensureLive();const diagnostic=(options.inspect||0)>.5,height=diagnostic?this.baseHeight:Math.ceil(this.baseHeight*1.32);
+  this.ensureLive();const diagnostic=(options.inspect||0)>.5,height=diagnostic||this.layout==='full'?this.baseHeight:Math.ceil(this.baseHeight*1.32);
   if(this.canvas.height!==height)super.resize(this.baseWidth,height);
-  this.canvas.classList.toggle('layered-card',!diagnostic);
+  this.canvas.classList.toggle('layered-card',this.layout==='card'&&!diagnostic);
   const gl=this.gl;gl.useProgram(this.program);gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,this.cardTexture);
   const values={cardType:this.cardType,cardAmount:this.layers.card,filmAmount:this.layers.film,cardLift:diagnostic?0:this.cardPose.lift,cardTurn:diagnostic?0:this.cardPose.turn,cardViewport:height/this.baseHeight};
   for(const [key,value] of Object.entries(values))gl.uniform1f(this.uniforms[key],value);

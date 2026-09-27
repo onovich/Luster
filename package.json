@@ -5,8 +5,11 @@
   "type": "module",
   "scripts": {
     "build": "node tools/build-pages.mjs",
+    "build:online": "node tools/build-online.mjs",
     "start": "python -m http.server 8798 --bind 127.0.0.1",
-    "test": "node --test tests/core.test.js tests/privacy.test.js",
+    "test": "node --test tests/core.test.js tests/privacy.test.js tests/online/project.test.mjs",
+    "test:online:unit": "node --test tests/online/project.test.mjs",
+    "test:online": "npm run build:online && node tests/online/run.cjs",
     "test:browser": "node tests/browser.cjs",
     "test:assets": "python tests/assets.py",
     "test:material": "node tests/material.cjs",
@@ -26,5 +29,8 @@
     "test:layers": "node tests/layers.cjs",
     "test:effects": "node tests/effects.cjs"
   },
-  "description": "Art-directed spectral foil rendering in WebGL."
+  "description": "Art-directed spectral foil rendering in WebGL.",
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
 }

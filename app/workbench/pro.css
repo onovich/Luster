@@ -1,0 +1,22 @@
+.top .brand{min-width:0}.top .brand strong{font-size:34px}.topActions{gap:8px}.top .badge{white-space:nowrap}
+#dirtyStatus{font-size:12px;opacity:.8;white-space:nowrap}.quiet{color:#f5ecd9;background:transparent;border:0;padding:7px;font-size:12px;white-space:nowrap}
+.fileTop{position:relative;cursor:pointer}.fileTop input{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer}
+.editorSection{border-top:1px solid #ffffff80;padding:12px 0}.sectionTitle{display:flex;align-items:center;justify-content:space-between}.sectionTitle h3{margin:0 0 10px}
+.reset{background:transparent;border:0;color:#f5ecd9;text-decoration:underline;font-size:12px;padding:3px}
+.param{display:grid;grid-template-columns:minmax(0,1fr) 62px;column-gap:9px;align-items:center;font-size:12px;margin:12px 0}
+.param input[type=range]{grid-column:1;display:block;width:100%;accent-color:#f5ecd9;margin:7px 0 0}
+.param input[type=number]{grid-column:2;grid-row:1/3;width:62px;color:#1239af;background:#f5ecd9;border:0;padding:6px 3px;text-align:center;font-size:12px}
+.param.seed{grid-template-columns:minmax(0,1fr) 104px 32px}.param.seed input{grid-column:2;width:104px}.param.seed button{grid-column:3;grid-row:1/3}
+.mapsInspect{border-top:1px solid #ffffff80;padding:12px 0;font-size:12px}.mapsInspect summary{cursor:pointer}.right .cards{margin-top:6px}
+.proExportTabs{display:flex;gap:12px;border-bottom:1px solid #ffffff80;margin:16px 0}.proExportTabs button{background:transparent;color:#f5ecd9;border:0;padding:10px}.proExportTabs button[aria-selected=true]{border-bottom:2px solid #f5ecd9;font-weight:bold}
+.modal #proDownloadPng,.modal #proExportPackage,.modal #proExportWeb,.modal #proExportUnity{margin-top:12px}.modal #unityContent .muted{margin-top:16px}
+@media(max-width:1280px){.top{padding:0 14px}.topActions{gap:3px}.top .brand strong{font-size:28px}.top .badge{font-size:9px}.quiet{font-size:11px;padding:5px}#dirtyStatus{display:none}}
+@media(max-width:760px){.topActions #undo,.topActions #redo{display:none}.top .brand strong{font-size:24px}.top .badge{display:none}}
+@media(max-width:520px){
+  .top{height:auto;min-height:66px;display:grid;grid-template-columns:1fr;gap:10px;padding:12px 14px}
+  .topActions{width:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+  .topActions .quiet,.topActions .primary{min-width:0;text-align:center;padding:8px 4px;font-size:11px}
+  .topActions .quiet{white-space:normal;line-height:1.15;overflow-wrap:anywhere}
+  .proExportTabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0}
+  .proExportTabs button{padding:10px 6px;text-align:left}
+}

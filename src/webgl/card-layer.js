@@ -46,11 +46,15 @@ vec3 cardLight(vec3 art){
 }
 
 `;
-export function withCardLayer(source){
+export function withCardLayer(source,{fullCanvas=false}={}){
  // The original film shader remains authoritative; augment only the substrate/composition.
  let s=source.replace(/\buv\b/g,'foilUV').replace('varying vec2 foilUV;','varying vec2 uv;vec2 foilUV;');
  const main=s.indexOf('void main()');s=s.slice(0,main)+cardShader+s.slice(main);
  s=s.replace('void main(){',`void main(){
+ ${fullCanvas ? `foilUV=uv;
+ cardUV=uv;
+ cardCoverage=1.;
+ float sleeve=1.;` : `
  foilUV=vec2(uv.x,uv.y*cardViewport);
  const float aspect=246./176.;
  vec2 p=(foilUV-vec2(.5,.5+cardLift))*vec2(1.,aspect);
@@ -59,6 +63,7 @@ export function withCardLayer(source){
  vec2 edge=min(cardUV,1.-cardUV);cardCoverage=step(0.,min(edge.x,edge.y));
  float sleeve=step(foilUV.y,1.);
  if(inspect<.5&&sleeve<.5&&cardCoverage<.5)discard;
+ `}
  `);
  s=s.replace('pow(texture2D(background,foilUV).rgb,vec3(2.2))','pow(texture2D(background,cardUV).rgb,vec3(2.2))');
  s=s.replace('for(int j=0;', 'if(sleeve>.5&&filmAmount>0.||inspect>.5)for(int j=0;');

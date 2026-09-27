@@ -5,7 +5,7 @@ import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 
 const root=fileURLToPath(new URL('../',import.meta.url));
-const excluded=new Set(['.git','.local','.test-output','node_modules','__pycache__']);
+const excluded=new Set(['.git','.local','.test-output','dist','dist-online','node_modules','__pycache__']);
 async function files(dir=root){
   const found=[];
   for(const entry of await readdir(dir,{withFileTypes:true})){

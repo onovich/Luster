@@ -1,0 +1,19 @@
+:root{font-family:Arial,Helvetica,sans-serif;color:#f5ecd9;background:#1646ce}
+*{box-sizing:border-box}
+body{margin:0;min-width:320px;min-height:100vh;display:flex;flex-direction:column}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px clamp(20px,4vw,64px);border-bottom:1px solid #f5ecd980}
+.brand{font-family:Impact,'Arial Narrow',sans-serif;font-size:32px;letter-spacing:-2px;line-height:1}
+.edition{border:1px solid #f5ecd9;border-radius:99px;padding:7px 12px;font-size:11px;letter-spacing:.12em;white-space:nowrap}
+main{width:min(1100px,100%);margin:auto;padding:64px clamp(20px,4vw,64px);display:grid;grid-template-columns:minmax(0,1.2fr) minmax(220px,.8fr);gap:clamp(32px,6vw,96px);align-items:center}
+.eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;font-weight:bold}
+h1{font-size:clamp(42px,6vw,84px);line-height:.98;letter-spacing:-.05em;margin:18px 0 24px;max-width:700px}
+p{font-size:16px;line-height:1.55;max-width:530px;margin:0 0 24px}
+.action{display:inline-block;background:#f5ecd9;color:#1646ce;border:2px solid #f5ecd9;border-radius:99px;padding:14px 24px;font-weight:bold;text-decoration:none}
+.action:hover{background:#fff9e9}.action:focus-visible{outline:3px solid #ffe27d;outline-offset:4px}
+.note{font-size:13px;opacity:.86;margin-top:18px}
+.visual{aspect-ratio:4/5;border:1px solid #f5ecd9;position:relative;overflow:hidden;background:#f5ecd9}
+.visual::before{content:'';position:absolute;inset:8%;background:repeating-linear-gradient(142deg,#0b2e95 0%,#1f55d4 8%,#eacda3 13%,#6673bd 18%,#0b2e95 25%);clip-path:polygon(0 0,100% 0,100% 100%,0 100%)}
+.visual::after{content:'L';position:absolute;inset:auto 4% -14%;font-family:Impact,'Arial Narrow',sans-serif;font-size:min(38vw,420px);line-height:1;color:#f5ecd9;mix-blend-mode:screen}
+footer{padding:18px clamp(20px,4vw,64px);font-size:12px;border-top:1px solid #f5ecd980;opacity:.85}
+@media(max-width:700px){main{grid-template-columns:1fr;padding-top:44px;padding-bottom:44px}.visual{max-width:340px;width:70%;justify-self:center}.visual::after{font-size:280px}}
+@media(prefers-reduced-motion:no-preference){.action{transition:background .15s ease}}
