@@ -85,3 +85,15 @@ test('trial handoff preserves every template',async()=>{
     assert.equal(opened.recipe.template,template);
   }
 });
+
+test('trial handoff rejects artwork whose bytes do not match its MIME type',async()=>{
+  const options={recipe,includeArtwork:true,sourceBytes:new Uint8Array(12),sourceMime:'image/png',sourceName:'bad.png',sourceWidth:1,sourceHeight:1};
+  await assert.rejects(createTrialHandoff(options),/Image bytes do not match declared type/);
+  const valid=readStoredZip(await createTrialHandoff({...options,sourceBytes:tinyPng}));
+  const manifest=JSON.parse(new TextDecoder().decode(valid.get('manifest.json')));
+  const invalid=new Uint8Array(12);
+  manifest.source.sha256=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',invalid)),byte=>byte.toString(16).padStart(2,'0')).join('');
+  valid.set(manifest.source.path,invalid);
+  valid.set('manifest.json',new TextEncoder().encode(JSON.stringify(manifest)));
+  await assert.rejects(openTrialHandoff(writeStoredZip(valid)),/Image bytes do not match declared type/);
+});

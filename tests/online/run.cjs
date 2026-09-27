@@ -39,7 +39,7 @@ function run(file){
 (async()=>{
   await new Promise((resolve,reject)=>server.once('error',reject).listen(port,host,resolve));
   try{
-    await run('browser.cjs');
+    if(!process.argv.includes('--layout-only'))await run('browser.cjs');
     await run('layout.cjs');
   }finally{
     await new Promise(resolve=>server.close(resolve));

@@ -2,18 +2,11 @@ import {makeSoftFolds,generatorVersion as softFoldsVersion} from './soft-folds.j
 import {makeMaterialMaps,materialGeneratorVersion,templates} from './material-maps.js';
 import {readStoredZip,writeStoredZip} from './zip-store.js';
 import {normalizeRecipe,shape,viewAngle} from './recipe.js';
+import {mimeToExtension,verifySource} from './source-image.js';
 export {normalizeRecipe,ProjectSession} from './recipe.js';
 
 export const projectSchemaVersion=3;
 const encoder=new TextEncoder(),decoder=new TextDecoder('utf-8',{fatal:true});
-const mimeToExtension={'image/png':'png','image/jpeg':'jpg','image/webp':'webp'};
-function verifySource(bytes,mime){
-  if(!(bytes instanceof Uint8Array)||bytes.length<12||bytes.length>20*1024*1024||!mimeToExtension[mime])throw new Error('Invalid source image');
-  const isPng=bytes[0]===137&&bytes[1]===80&&bytes[2]===78&&bytes[3]===71;
-  const isJpeg=bytes[0]===255&&bytes[1]===216&&bytes[2]===255;
-  const isWebp=String.fromCharCode(...bytes.subarray(0,4))==='RIFF'&&String.fromCharCode(...bytes.subarray(8,12))==='WEBP';
-  if(!(mime==='image/png'&&isPng||mime==='image/jpeg'&&isJpeg||mime==='image/webp'&&isWebp))throw new Error('Image bytes do not match declared type');
-}
 function dimensions(width,height){
   if(!Number.isInteger(width)||!Number.isInteger(height)||width<1||height<1||width*height>24_000_000)throw new RangeError('Invalid source dimensions');
 }

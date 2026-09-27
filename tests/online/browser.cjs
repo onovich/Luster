@@ -49,12 +49,19 @@ const sha=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
     await page.waitForFunction(()=>window.lusterPro?.state.ready);
     await page.locator('[data-template="prism"]').click();
     await page.waitForFunction(()=>window.lusterPro?.state.ready&&window.lusterPro.state.recipe.template==='prism');
+    for(const [key,value] of [['strength',0.64],['richness',30],['light',12]]){
+      await page.locator(`[data-number="${key}"]`).evaluate((input,next)=>{input.value=String(next);input.dispatchEvent(new Event('change',{bubbles:true}));},value);
+    }
+    await page.waitForFunction(()=>window.lusterPro.state.ready&&window.lusterPro.state.recipe.strength===0.64&&window.lusterPro.state.recipe.richness===30&&window.lusterPro.state.recipe.light===12);
     const preview=Buffer.from((await page.locator('#preview').evaluate(canvas=>canvas.toDataURL('image/png'))).split(',')[1],'base64');
     const projectDownload=page.waitForEvent('download');await page.locator('#saveProject').click();
     const project=await projectDownload;
     const projectBytes=new Uint8Array(fs.readFileSync(await project.path()));
     assert.equal((await openProjectPackage(projectBytes)).recipe.template,'prism');
     await page.locator('#export').click();
+    const proPngDownload=page.waitForEvent('download');await page.locator('#proDownloadPng').click();
+    const proPng=fs.readFileSync(await (await proPngDownload).path());
+    assert.equal(sha(proPng),sha(preview),'Pro PNG must match the edited preview');
     assert.equal(await page.locator('#proExportWeb').isDisabled(),false);
     assert.equal(await page.locator('#proExportUnity').isDisabled(),false);
     await page.locator('#webTab').click();
@@ -76,6 +83,25 @@ const sha=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
     const unity=new Uint8Array(fs.readFileSync(await (await unityDownload).path()));
     const unityFiles=readStoredZip(unity),unityManifest=JSON.parse(new TextDecoder().decode(unityFiles.get('Assets/LusterExport/manifest.json')));
     assert.equal(unityManifest.template,'prism');assert(unityFiles.has('Assets/LusterExport/Runtime/LayeredUI.shader'));
+    await page.locator('#openProject').setInputFiles({name:'named-project.luster',mimeType:'application/zip',buffer:Buffer.from(projectBytes)});
+    await page.waitForFunction(()=>window.lusterPro?.state.projectName==='named-project'&&!window.lusterPro.state.dirty);
+    await page.waitForTimeout(400);
+    await page.reload();
+    await page.waitForFunction(()=>window.lusterPro?.state.ready&&window.lusterPro.state.projectName==='named-project');
+    assert.equal(await page.evaluate(()=>window.lusterPro.state.dirty),false,'Restored project must retain saved state');
+    await page.evaluate(async base64=>{
+      const original=createImageBitmap;
+      let release;
+      const blocked=new Promise(resolve=>{release=resolve;});
+      window.createImageBitmap=(...args)=>blocked.then(()=>original(...args));
+      try{
+        const bytes=Uint8Array.from(atob(base64),char=>char.charCodeAt(0));
+        const loading=window.lusterController.loadFile(new File([bytes],'late.png',{type:'image/png'}));
+        await window.lusterController.resetProject();
+        release();await loading;
+      }finally{release();window.createImageBitmap=original;}
+    },art.toString('base64'));
+    assert.equal(await page.evaluate(()=>window.lusterTrial.state.ready),false,'New project must invalidate an in-flight image load');
     assert.deepEqual(errors,[]);assert.deepEqual(external,[]);
     const report={webFiles:webFiles.size,unityFiles:unityFiles.size,previewSha256:sha(preview),exportSha256:sha(exported),trialPngBytes:png.length,errors,external};
     fs.writeFileSync(path.join(output,'online-browser-report.json'),JSON.stringify(report,null,2));

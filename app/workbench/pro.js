@@ -71,7 +71,7 @@ async function saveProject(){
   try{
     const archive=await packedProject();
     downloadBytes(archive,`${projectName==='Untitled'?'luster-project':projectName}.luster`);
-    dirty=false;sync();status('Project download started');
+    dirty=false;sync();controller.persist();status('Project download started');
   }catch(error){status(error.message);}
 }
 $('saveProject').addEventListener('click',()=>saveProject());
@@ -82,7 +82,7 @@ async function openFile(input){
     const handoff=await openTrialHandoff(bytes);
     if(handoff.sourceBytes){
       await controller.importProject({sourceBytes:handoff.sourceBytes,sourceName:handoff.manifest.source.name,sourceMime:handoff.manifest.source.mime,recipe:handoff.recipe,angle:handoff.manifest.view.angle});
-      projectName='Imported trial look';dirty=true;
+      projectName='Imported trial look';dirty=true;controller.persist();
     }else{
       pendingRecipe=handoff;
       status('Choose the original artwork for this recipe-only handoff.');
@@ -91,7 +91,7 @@ async function openFile(input){
   }else{
     const opened=await openProjectPackage(bytes),source=opened.manifest.source;
     await controller.importProject({sourceBytes:opened.sourceBytes,sourceName:source.name,sourceMime:source.mime,recipe:opened.recipe,angle:opened.angle});
-    projectName=input.name.replace(/\.luster$/i,'');dirty=false;
+    projectName=input.name.replace(/\.luster$/i,'');dirty=false;controller.persist();
   }
   sync();status('Project opened locally');
 }
@@ -103,7 +103,7 @@ $('sourceForRecipe').addEventListener('change',async event=>{
   const input=event.target.files?.[0];if(!input||!pendingRecipe)return;
   try{
     await controller.importProject({sourceBytes:new Uint8Array(await input.arrayBuffer()),sourceName:input.name,sourceMime:input.type,recipe:pendingRecipe.recipe,angle:pendingRecipe.manifest.view.angle});
-    projectName='Imported trial recipe';dirty=true;pendingRecipe=null;sync();status('Recipe restored with selected artwork');
+    projectName='Imported trial recipe';dirty=true;pendingRecipe=null;controller.persist();sync();status('Recipe restored with selected artwork');
   }catch(error){status(error.message);}finally{event.target.value='';}
 });
 function proModal(open){
@@ -163,3 +163,9 @@ sync();
 window.lusterPro={
   get state(){return {dirty,projectName,recipe:controller.recipe,revision:controller.state.revision,canUndo:controller.state.canUndo,canRedo:controller.state.canRedo,ready:!!controller.renderer&&!!controller.maps};}
 };
+void window.lusterRestoration?.then(record=>{
+  if(!record)return;
+  projectName=typeof record.projectName==='string'&&record.projectName?record.projectName:'Untitled';
+  dirty=record.dirty===true;
+  sync();
+});

@@ -61,10 +61,12 @@ function paintRecipe(recipe){
 }
 async function whenMapsReady(){let observed;do{observed=mapTask;await observed;}while(observed!==mapTask);return currentMaps;}
 function setRecipe(recipe){
-  project.apply(recipe,project.read().revision);
-  revision++;
-  const pending=paintRecipe(project.read().recipe);
-  document.dispatchEvent(new CustomEvent('luster:recipe-change',{detail:{revision}}));
+  const before=project.read(),after=project.apply(recipe,before.revision);
+  const pending=paintRecipe(after.recipe);
+  if(after.revision!==before.revision){
+    revision++;
+    document.dispatchEvent(new CustomEvent('luster:recipe-change',{detail:{revision}}));
+  }
   return pending;
 }
 function undoRecipe(){
@@ -187,7 +189,7 @@ async function importProject({sourceBytes,sourceName,sourceMime,recipe,angle:imp
   if(!loaded)throw new Error('Project artwork could not be loaded');
 }
 async function resetProject(){
-  stopRotation();clearTimeout(saveTimer);mapJob++;mapEngine.cancel();thumbnailEngine.cancel();if(renderer)renderer.dispose();
+  stopRotation();clearTimeout(saveTimer);loadJob++;renderJob++;mapJob++;mapEngine.cancel();thumbnailEngine.cancel();if(renderer)renderer.dispose();
   file=null;art=null;renderer=null;currentMaps=null;sourceDimensions=null;groups=[];groupIndex=-1;selectedIndex=0;saved=[];revision++;
   project=new ProjectSession();view='material';foil=true;angle=5;
   $('preview').style.display='none';$('welcome').hidden=false;$('artThumb').hidden=true;$('artEmpty').hidden=false;
@@ -204,7 +206,8 @@ function scheduleSave(){
       const db=await database();
       await new Promise((resolve,reject)=>{
         const transaction=db.transaction('state','readwrite');
-        transaction.objectStore('state').put({key:'current',file,groups,groupIndex,selectedIndex,saved,recipe:currentRecipe(),view,foil,angle});
+        const pro=document.body.dataset.edition==='pro'?window.lusterPro?.state:null;
+        transaction.objectStore('state').put({key:'current',file,groups,groupIndex,selectedIndex,saved,recipe:currentRecipe(),view,foil,angle,...(pro?{projectName:pro.projectName,dirty:pro.dirty}:{})});
         transaction.oncomplete=resolve;transaction.onerror=()=>reject(transaction.error);
       });
       $('saveStatus').textContent='Saved in this browser';
@@ -221,23 +224,25 @@ function database(){
   return databasePromise;
 }
 async function restore(){
+  const originalLoadJob=loadJob;
   try{
     const db=await database(),record=await new Promise((resolve,reject)=>{
       const request=db.transaction('state').objectStore('state').get('current');request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);
     });
-    if(!record)return;
+    if(!record||loadJob!==originalLoadJob)return;
     groups=record.groups||[];groupIndex=record.groupIndex??0;selectedIndex=record.selectedIndex??0;saved=record.saved||[];
     project=new ProjectSession(normalizeRecipe(record.recipe));view=record.view==='original'?'original':'material';foil=record.foil!==false;angle=Number.isFinite(record.angle)?record.angle:5;
     updateView();
-    await loadFile(record.file,{restoring:true});
+    return await loadFile(record.file,{restoring:true})?record:undefined;
   }catch(error){status(`Local restoration unavailable: ${error.message}`);}
 }
 async function downloadPng(){
   if(!art||!await whenMapsReady())return;
-  const snapshot={revision,angle,view,foil,maps:currentMaps,art};status(`Encoding revision ${snapshot.revision}…`);
+  const snapshot={revision,angle,view,foil,maps:currentMaps,art,recipe:currentRecipe()};status(`Encoding revision ${snapshot.revision}…`);
   let output;
   try{
     output=await LayeredRenderer.create(document.createElement('canvas'),{layout:'full',background:snapshot.art,normal:snapshot.maps.normal,surface:snapshot.maps.surface,width:renderer.baseWidth,height:renderer.baseHeight});
+    output.setParameters({strength:snapshot.recipe.strength,richness:snapshot.recipe.richness,light:snapshot.recipe.light});
     output.setLayers(snapshot.view==='original'?{card:0,film:0}:{card:1,film:snapshot.foil?1:0});
     output.render({angle:snapshot.angle});
     const blob=await new Promise((resolve,reject)=>output.canvas.toBlob(value=>value?resolve(value):reject(new Error('PNG encoding failed')),'image/png'));
@@ -317,5 +322,5 @@ window.lusterTrial={get state(){return {ready:!!renderer&&!!currentMaps,revision
 window.lusterController={
   get file(){return file;},get art(){return art;},get sourceDimensions(){return sourceDimensions;},get recipe(){return currentRecipe();},get angle(){return angle;},get mapMode(){return mapEngine.mode;},whenMapsReady,
   get state(){return {...project.read(),angle};},get renderer(){return renderer;},get maps(){return currentMaps;},
-  paintRecipe,commitRecipe(recipe){setRecipe(recipe);drawCards();scheduleSave();},undo:undoRecipe,redo:redoRecipe,importProject,resetProject,loadFile,status
+  paintRecipe,commitRecipe(recipe){setRecipe(recipe);drawCards();scheduleSave();},undo:undoRecipe,redo:redoRecipe,importProject,resetProject,loadFile,status,persist:scheduleSave
 };

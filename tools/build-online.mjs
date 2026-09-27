@@ -8,7 +8,7 @@ const output=path.join(repo,'dist-online');
 if(path.dirname(output)!==repo)throw new Error('Online output must stay inside the repository');
 const shared=[
   'trial.html','trial.css','trial.js','image.js','soft-folds.js','material-maps.js',
-  'map-engine.js','map-worker.js','recipe.js','zip-store.js','trial-handoff.js'
+  'map-engine.js','map-worker.js','recipe.js','zip-store.js','trial-handoff.js','source-image.js'
 ];
 const proOnly=[
   'pro.html','pro.css','pro.js','project.js','export-web.mjs','export-unity.mjs',

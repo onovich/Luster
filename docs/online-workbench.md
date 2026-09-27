@@ -29,3 +29,4 @@ The build uses an explicit source list and rejects stale files, desktop paths an
 - Decide whether browser or service-based AI integration is part of this release. The retired desktop MCP integration is not included in either site build.
 
 The supported Unity export target is Unity 6000.4 Built-in Render Pipeline, Gamma color, uGUI. URP and other pipelines are not part of the verified target.
+The fixed-target comparison procedure is in [Unity acceptance](unity-acceptance.md); Unity rendering is a separate manual gate and is not run by the Chromium CI job.
