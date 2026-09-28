@@ -1,11 +1,11 @@
-const {chromium,launchOptions}=require('../support/browser.cjs');
+const {browserType,launchOptions}=require('../support/browser.cjs');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const output=path.resolve(__dirname,'../../.test-output/layout');
 
 (async()=>{
-  const browser=await chromium.launch(launchOptions);
+  const browser=await browserType.launch(launchOptions);
   try{
     const cases=[[320,568],[768,768],[1024,768],[1366,768],[1440,900],[1920,1080]];
     const report=[];

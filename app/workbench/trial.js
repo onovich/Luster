@@ -8,7 +8,7 @@ import {createTrialHandoff} from './trial-handoff.js';
 const $=id=>document.getElementById(id);
 let file=null,art=null,renderer=null,currentMaps=null,revision=0,groups=[],groupIndex=-1,selectedIndex=0,saved=[],tab='explore';
 let sourceDimensions=null;
-let project=new ProjectSession(),renderJob=0,loadJob=0,saveTimer,autoFrame=0,focusBeforeModal=null;
+let project=new ProjectSession(),renderJob=0,loadJob=0,saveJob=0,saveTimer,autoFrame=0,focusBeforeModal=null;
 const mapEngine=new MapEngine(16),thumbnailEngine=new MapEngine(48);
 let mapJob=0,mapTask=Promise.resolve();
 let view='material',foil=true,angle=5;
@@ -189,29 +189,37 @@ async function importProject({sourceBytes,sourceName,sourceMime,recipe,angle:imp
   if(!loaded)throw new Error('Project artwork could not be loaded');
 }
 async function resetProject(){
-  stopRotation();clearTimeout(saveTimer);loadJob++;renderJob++;mapJob++;mapEngine.cancel();thumbnailEngine.cancel();if(renderer)renderer.dispose();
+  stopRotation();clearTimeout(saveTimer);saveJob++;loadJob++;renderJob++;mapJob++;mapEngine.cancel();thumbnailEngine.cancel();if(renderer)renderer.dispose();
   file=null;art=null;renderer=null;currentMaps=null;sourceDimensions=null;groups=[];groupIndex=-1;selectedIndex=0;saved=[];revision++;
   project=new ProjectSession();view='material';foil=true;angle=5;
   $('preview').style.display='none';$('welcome').hidden=false;$('artThumb').hidden=true;$('artEmpty').hidden=false;
   $('imageInfo').textContent='PNG, JPEG, WebP · processed locally';$('lookTitle').textContent='Your material starts here';
   $('export').disabled=true;$('saveLook').disabled=true;$('cards').textContent='Choose an image to see six finishes.';
-  updateView();updateHistory();status('Local processing');
+  updateView();updateHistory();status('Local processing');$('saveStatus').textContent='Not saved yet';
   try{const db=await database();await new Promise((resolve,reject)=>{const request=db.transaction('state','readwrite').objectStore('state').delete('current');request.onsuccess=resolve;request.onerror=()=>reject(request.error);});}catch{}
   document.dispatchEvent(new CustomEvent('luster:recipe-change',{detail:{revision}}));
 }
 function scheduleSave(){
-  if(!file)return;clearTimeout(saveTimer);
+  if(!file)return;
+  clearTimeout(saveTimer);
+  const job=++saveJob,source=file;
+  $('saveStatus').textContent='Saving locally…';
   saveTimer=setTimeout(async()=>{
     try{
+      const bytes=new Uint8Array(await source.arrayBuffer());
+      if(job!==saveJob||source!==file)return;
       const db=await database();
+      if(job!==saveJob||source!==file)return;
       await new Promise((resolve,reject)=>{
         const transaction=db.transaction('state','readwrite');
         const pro=document.body.dataset.edition==='pro'?window.lusterPro?.state:null;
-        transaction.objectStore('state').put({key:'current',file,groups,groupIndex,selectedIndex,saved,recipe:currentRecipe(),view,foil,angle,...(pro?{projectName:pro.projectName,dirty:pro.dirty}:{})});
-        transaction.oncomplete=resolve;transaction.onerror=()=>reject(transaction.error);
+        const request=transaction.objectStore('state').put({key:'current',source:{name:source.name,type:source.type,bytes},groups,groupIndex,selectedIndex,saved,recipe:currentRecipe(),view,foil,angle,...(pro?{projectName:pro.projectName,dirty:pro.dirty}:{})});
+        transaction.oncomplete=resolve;
+        request.onerror=()=>reject(request.error||new Error('IndexedDB write failed'));
+        transaction.onabort=()=>reject(transaction.error||new Error('IndexedDB transaction aborted'));
       });
-      $('saveStatus').textContent='Saved in this browser';
-    }catch{$('saveStatus').textContent='Local save unavailable';}
+      if(job===saveJob)$('saveStatus').textContent='Saved in this browser';
+    }catch(error){if(job===saveJob){$('saveStatus').textContent='Local save unavailable';console.error('Local project save failed',error);}}
   },250);
 }
 let databasePromise;
@@ -233,7 +241,10 @@ async function restore(){
     groups=record.groups||[];groupIndex=record.groupIndex??0;selectedIndex=record.selectedIndex??0;saved=record.saved||[];
     project=new ProjectSession(normalizeRecipe(record.recipe));view=record.view==='original'?'original':'material';foil=record.foil!==false;angle=Number.isFinite(record.angle)?record.angle:5;
     updateView();
-    return await loadFile(record.file,{restoring:true})?record:undefined;
+    const restoredFile=record.file instanceof File?record.file:
+      record.source?.bytes?new File([record.source.bytes],record.source.name,{type:record.source.type}):null;
+    if(!restoredFile)throw new Error('Saved artwork is missing');
+    return await loadFile(restoredFile,{restoring:true})?record:undefined;
   }catch(error){status(`Local restoration unavailable: ${error.message}`);}
 }
 async function downloadPng(){
@@ -267,7 +278,7 @@ async function downloadHandoff(){
     status(includeArtwork?'Trial handoff downloaded with artwork':'Recipe-only handoff downloaded');
   }catch(error){status(error.message);}
 }
-function openModal(){focusBeforeModal=document.activeElement;$('modalBackdrop').hidden=false;$('upgradeNote').hidden=true;$('closeModal').focus();}
+function openModal(){focusBeforeModal=$('export');$('modalBackdrop').hidden=false;$('upgradeNote').hidden=true;$('closeModal').focus();}
 function closeModal(){$('modalBackdrop').hidden=true;focusBeforeModal?.focus();}
 function stopRotation(){$('rotate').checked=false;if(autoFrame)cancelAnimationFrame(autoFrame);autoFrame=0;scheduleSave();}
 function startRotation(){
@@ -311,7 +322,7 @@ $('saveHandoff').addEventListener('click',downloadHandoff);
 $('upgrade').addEventListener('click',()=>{$('upgradeNote').hidden=false;});
 document.addEventListener('keydown',event=>{
   if($('modalBackdrop').hidden)return;
-  if(event.key==='Escape'){closeModal();return;}
+  if(event.key==='Escape'){event.preventDefault();closeModal();return;}
   if(event.key!=='Tab')return;
   const controls=[...$('modalBackdrop').querySelectorAll('button:not(:disabled)')],first=controls[0],last=controls.at(-1);
   if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}

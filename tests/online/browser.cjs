@@ -1,4 +1,4 @@
-const {chromium,launchOptions}=require('../support/browser.cjs');
+const {browserType,launchOptions}=require('../support/browser.cjs');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
@@ -11,7 +11,7 @@ const sha=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 (async()=>{
   const {readStoredZip}=await import('../../app/workbench/zip-store.js');
   const {openProjectPackage}=await import('../../app/workbench/project.js');
-  const browser=await chromium.launch(launchOptions);
+  const browser=await browserType.launch(launchOptions);
   try{
     const context=await browser.newContext({acceptDownloads:true,viewport:{width:1366,height:768}});
     const page=await context.newPage(),errors=[],external=[];
@@ -58,6 +58,8 @@ const sha=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
     const project=await projectDownload;
     const projectBytes=new Uint8Array(fs.readFileSync(await project.path()));
     assert.equal((await openProjectPackage(projectBytes)).recipe.template,'prism');
+    await page.waitForTimeout(500);
+    assert.equal(await page.locator('#saveStatus').textContent(),'Saved in this browser','Project must be saved locally before navigation');
     await page.locator('#export').click();
     const proPngDownload=page.waitForEvent('download');await page.locator('#proDownloadPng').click();
     const proPng=fs.readFileSync(await (await proPngDownload).path());
@@ -77,7 +79,8 @@ const sha=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
     const exported=Buffer.from((await page.locator('#material').evaluate(canvas=>canvas.toDataURL('image/png'))).split(',')[1],'base64');
     assert.equal(sha(exported),sha(preview));
     await page.goto(`${proBase}app/workbench/pro.html`);
-    await page.waitForFunction(()=>window.lusterPro?.state.ready&&window.lusterPro.state.recipe.template==='prism');
+    try{await page.waitForFunction(()=>window.lusterPro?.state.ready&&window.lusterPro.state.recipe.template==='prism');}
+    catch(error){console.error('Pro restoration state:',await page.evaluate(()=>({pro:window.lusterPro?.state,trial:window.lusterTrial?.state,status:document.getElementById('status')?.textContent,saveStatus:document.getElementById('saveStatus')?.textContent})));throw error;}
     await page.locator('#export').click();await page.locator('#unityTab').click();
     const unityDownload=page.waitForEvent('download');await page.locator('#proExportUnity').click();
     const unity=new Uint8Array(fs.readFileSync(await (await unityDownload).path()));

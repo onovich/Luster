@@ -107,7 +107,7 @@ $('sourceForRecipe').addEventListener('change',async event=>{
   }catch(error){status(error.message);}finally{event.target.value='';}
 });
 function proModal(open){
-  if(open){previousFocus=document.activeElement;$('proBackdrop').hidden=false;$('closeProModal').focus();}
+  if(open){previousFocus=$('export');$('proBackdrop').hidden=false;$('closeProModal').focus();}
   else{$('proBackdrop').hidden=true;previousFocus?.focus();}
 }
 $('export').addEventListener('click',event=>{event.stopImmediatePropagation();proModal(true);},true);
@@ -150,7 +150,7 @@ $('proExportUnity').addEventListener('click',async()=>{
 });
 document.addEventListener('keydown',event=>{
   if($('proBackdrop').hidden)return;
-  if(event.key==='Escape'){proModal(false);return;}
+  if(event.key==='Escape'){event.preventDefault();proModal(false);return;}
   if(event.key==='Tab'){
     const controls=[...$('proBackdrop').querySelectorAll('button:not(:disabled):not([hidden])')].filter(button=>button.offsetParent!==null);
     const first=controls[0],last=controls.at(-1);

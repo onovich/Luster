@@ -19,6 +19,8 @@ npm run test:online
 
 The build uses an explicit source list and rejects stale files, desktop paths and Pro resources in the Trial artifact. `npm run test:online` runs a real browser against both built roots, verifies downloads and exported Web preview parity, checks for external requests and script errors, and exercises layouts from 320 to 1920 CSS pixels. The same command runs in CI. The current GitHub Pages workflow still publishes only the separate demo build (`npm run build`).
 
+For local compatibility checks, install the desired Playwright browser, then run `npm run test:online -- --browser=webkit` or `npm run test:stress -- --browser=webkit`. The stress check uses 4096 × 3072 artwork, rapid template and parameter changes, local recovery storage, and keyboard operation of the export dialog. Chromium and WebKit passed these checks locally on 2026-09-28. Firefox could not launch on this Windows host (`spawn UNKNOWN`), so Firefox support remains unverified. CI currently runs Chromium only; the local timings are not a device performance budget.
+
 ## Before a public workbench release
 
 - Decide Trial PNG size, watermark and permitted use. The current Trial downloads an unwatermarked PNG preview.

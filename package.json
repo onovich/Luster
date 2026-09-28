@@ -11,6 +11,7 @@
     "test:online:unit": "node --test tests/online/project.test.mjs",
     "test:online": "npm run build:online && node tests/online/run.cjs",
     "test:layout": "npm run build:online && node tests/online/run.cjs --layout-only",
+    "test:stress": "npm run build:online && node tests/online/run.cjs --stress-only",
     "test:unity:prepare": "node tests/online/unity-case.mjs all",
     "test:browser": "node tests/browser.cjs",
     "test:assets": "python tests/assets.py",
