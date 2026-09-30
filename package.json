@@ -9,6 +9,7 @@
     "start": "python -m http.server 8798 --bind 127.0.0.1",
     "test": "node --test tests/core.test.js tests/privacy.test.js tests/online/project.test.mjs",
     "test:online:unit": "node --test tests/online/project.test.mjs",
+    "test:spectrum": "node tests/online/spectrum.cjs",
     "test:online": "npm run build:online && node tests/online/run.cjs",
     "test:layout": "npm run build:online && node tests/online/run.cjs --layout-only",
     "test:stress": "npm run build:online && node tests/online/run.cjs --stress-only",

@@ -53,7 +53,7 @@ async function waitForCandidates(page,edition){
         }
       });
     }
-    page.on('pageerror',error=>errors.push(error.message));
+    page.on('pageerror',error=>{errors.push(error.message);console.error('Browser script error:',error.stack);});
     page.on('request',request=>{if(!request.url().startsWith('http://127.0.0.1:8798/'))external.push(request.url());});
     assert.equal((await context.request.get(`${trialBase}app/workbench/pro.html`)).status(),404);
     await page.goto(trialBase);

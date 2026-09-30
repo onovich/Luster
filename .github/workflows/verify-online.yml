@@ -38,3 +38,4 @@ jobs:
         env:
           LUSTER_USE_BUNDLED_CHROMIUM: '1'
           LUSTER_FIREFOX_HEADED: ${{ matrix.browser == 'firefox' && '1' || '0' }}
+          LUSTER_FIREFOX_ANGLE: ${{ matrix.browser == 'firefox' && '1' || '0' }}
