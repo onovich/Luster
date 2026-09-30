@@ -60,6 +60,8 @@ const output=path.resolve(__dirname,'../../.test-output/layout');
       const scrollWidth=await page.evaluate(()=>document.documentElement.scrollWidth);
       assert(scrollWidth<=width+1,`Trial horizontal overflow at ${width}`);
       await page.locator('#export').click();
+      try{await page.locator('#modalBackdrop').waitFor({state:'visible',timeout:5000});}
+      catch(error){console.error('Trial export did not open',await page.evaluate(()=>({width:innerWidth,status:document.getElementById('status').textContent,buttons:document.querySelectorAll('#export').length,hidden:document.getElementById('modalBackdrop').hidden})));throw error;}
       await page.locator('#download').scrollIntoViewIfNeeded();
       assert(await page.locator('#download').isVisible());
       await page.screenshot({path:path.join(output,`trial-${width}x${height}.png`)});

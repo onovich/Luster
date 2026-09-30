@@ -32,3 +32,5 @@ body:has(.workspace) .center{background:var(--luster-blue)}.canvasWrap{backgroun
 @media(max-width:700px){.siteHeader{height:112px;min-height:112px;grid-template-columns:1fr auto;gap:4px 16px}.siteHeader .siteNav{grid-column:1/-1;grid-row:2;justify-self:stretch}.siteLanguage{grid-column:2;grid-row:1}.siteBrand{grid-column:1;grid-row:1}body[data-site-view=home] main{min-height:100svh}.editorActions{gap:8px}.stageHeading #status{max-width:135px}.stageHeading{flex-wrap:wrap}}@media(max-width:760px){body[data-site-view] .workspace{height:auto}}@media(prefers-reduced-motion:reduce){.pageFrames{transition:none}}
 
 @media(max-width:700px){.editorActions .primary{min-height:44px}}
+
+.stageHeading{display:grid;grid-template-columns:minmax(0,1fr) auto;flex-shrink:0}.stageHeading #lookTitle{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.editorActions #status{width:180px;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}@media(max-width:700px){.stageHeading{position:relative;padding-bottom:22px}.editorActions #status{position:absolute;left:0;right:0;bottom:0;width:auto;max-width:100%;text-align:left}.editorActions{gap:0}}
