@@ -37,3 +37,4 @@ jobs:
       - run: npm run test:online -- --browser=${{ matrix.browser }}
         env:
           LUSTER_USE_BUNDLED_CHROMIUM: '1'
+          LUSTER_FIREFOX_HEADED: ${{ matrix.browser == 'firefox' && '1' || '0' }}

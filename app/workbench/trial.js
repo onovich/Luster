@@ -9,8 +9,7 @@ const $=id=>document.getElementById(id);
 let file=null,art=null,renderer=null,currentMaps=null,revision=0,groups=[],groupIndex=-1,selectedIndex=0,saved=[],tab='explore';
 let sourceDimensions=null;
 let project=new ProjectSession(),renderJob=0,loadJob=0,saveJob=0,saveTimer,autoFrame=0,focusBeforeModal=null;
-// Candidate maps are small; keep the main preview worker separate from their queued tasks.
-const mapEngine=new MapEngine(16),thumbnailEngine=new MapEngine(48,false);
+const mapEngine=new MapEngine(16),thumbnailEngine=new MapEngine(48);
 let mapJob=0,mapTask=Promise.resolve();
 let view='material',foil=true,angle=5;
 const maxSide=256;
@@ -105,15 +104,6 @@ function updateHistory(){
   $('exploreTab').setAttribute('aria-selected',String(tab==='explore'));
   $('savedTab').setAttribute('aria-selected',String(tab==='saved'));
 }
-function thumbnailDataUrl(canvas){
-  return new Promise((resolve,reject)=>canvas.toBlob(blob=>{
-    if(!blob){reject(new Error('Candidate preview encoding failed'));return;}
-    const reader=new FileReader();
-    reader.onload=()=>resolve(reader.result);
-    reader.onerror=()=>reject(reader.error||new Error('Candidate preview reading failed'));
-    reader.readAsDataURL(blob);
-  },'image/png'));
-}
 async function thumbnails(recipes,onProgress=()=>{}){
   if(!art||!recipes.length)return [];
   const [width,height]=dimensions(132),[mapWidth,mapHeight]=dimensions(96);
@@ -128,7 +118,7 @@ async function thumbnails(recipes,onProgress=()=>{}){
       onProgress(`Rendering candidate ${index+1}/${recipes.length}…`);
       output.setParameters({strength:recipe.strength,richness:recipe.richness,light:recipe.light});
       output.setNormal(maps.normal);output.setSurface(maps.surface);output.setLayers({card:1,film:1});output.render({angle:5});
-      urls.push(await thumbnailDataUrl(output.canvas));
+      urls.push(output.canvas.toDataURL('image/png'));
     }
     return urls;
   }finally{output.dispose();}
