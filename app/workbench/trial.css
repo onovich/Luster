@@ -60,7 +60,3 @@ button:focus-visible,input:focus-visible,.fileButton:focus-within{outline:3px so
 .cardPlaceholder{min-height:112px;background:#1038ae;border:1px solid #ffffff60;display:grid;place-items:center;text-align:center;padding:12px;font-size:11px;color:#f5ecd9}
 .errorNotice{margin:0;padding:12px 24px;background:#f5ecd9;color:#10339b;font-size:13px;line-height:1.4;border-bottom:1px solid #10339b}
 #welcome span{line-height:1.65;max-width:360px}
-
-.productLink{color:inherit;text-decoration:none;padding:10px 0;font-size:13px}.productLink:hover{text-decoration:underline}.productLink:focus-visible{outline:3px solid #ffeaa0;outline-offset:3px}@media(max-width:600px){.productLink{font-size:12px}.topActions{gap:10px}}
-
-@media(max-width:600px){body:not([data-edition="pro"]) .top{flex-wrap:wrap;gap:6px}body:not([data-edition="pro"]) .topActions{width:100%;justify-content:space-between}.productLink{display:inline-flex;align-items:center;min-height:44px}}

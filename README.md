@@ -6,7 +6,7 @@ Interactive WebGL card and foil materials, with reflections that respond to angl
 
 ![Luster — interactive foil materials](docs/social-preview.png)
 
-[Material gallery](https://luster.onovich.com/) · [About Luster](https://luster.onovich.com/product/) · [Try Luster](https://luster.onovich.com/trial/) · [Integration](docs/guide.md) · [Card materials](docs/card-materials.md)
+[Material gallery](https://luster.onovich.com/) · [About Luster](https://luster.onovich.com/product/) · [Pricing](https://luster.onovich.com/pricing/) · [Try Luster](https://luster.onovich.com/trial/) · [Integration](docs/guide.md) · [Card materials](docs/card-materials.md)
 
 The browser-only Trial is publicly available: upload artwork or use an example, explore finishes, and download a free 512px PNG without a watermark. Pro is in development and is excluded from the public site. See [online workbench status](docs/online-workbench.md).
 
