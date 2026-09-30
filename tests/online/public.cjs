@@ -19,6 +19,7 @@ const base=process.env.LUSTER_PUBLIC_URL||'http://127.0.0.1:8798/dist/';
    await page.getByRole('link',{name:'About Luster',exact:true}).click();
    assert.equal(new URL(page.url()).pathname,new URL(`${base}product/`).pathname);
    await page.locator('.heroMaterial img').waitFor();
+   await page.waitForFunction(()=>{const image=document.querySelector('.heroMaterial img');return image?.complete&&image.naturalWidth>0;});
    assert(await page.locator('.heroMaterial img').evaluate(image=>image.complete&&image.naturalWidth>0));
    assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`Landing overflow at ${width}`);
    await page.screenshot({path:path.join(output,`landing-${width}.png`),fullPage:true});
