@@ -113,3 +113,5 @@ body[data-load=loading] #materialGallery #materialIndex{display:none}
  .auto-toggle[aria-pressed=true]:after{background:#f4ead8 radial-gradient(circle at 1.757813cqw 50%,#1c4ecd 0 .455729cqw,transparent .520833cqw)}
  input[type=range]::-webkit-slider-thumb{width:.976563cqw;height:.976563cqw;margin-top:calc(1px - .488281cqw)}
 }
+
+nav .create-link{border-bottom:1px solid var(--paper)}@media(max-width:600px){header nav{flex-direction:column;gap:0;align-items:flex-end}header h1{width:125px}header nav a{min-height:44px}}
