@@ -18,6 +18,17 @@ async function waitForReady(page,edition){
     throw error;
   }
 }
+async function waitForCandidates(page,edition){
+  const started=Date.now();
+  try{await page.waitForFunction(()=>document.querySelectorAll('#cards .card').length===6,undefined,{timeout:60000});}
+  catch(error){
+    console.error(`${edition} candidates did not finish:`,await page.evaluate(()=>({
+      count:document.querySelectorAll('#cards .card').length,status:document.getElementById('status')?.textContent
+    })));
+    throw error;
+  }
+  console.log(`${edition} candidates ready in ${Date.now()-started}ms`);
+}
 (async()=>{
   const {readStoredZip}=await import('../../app/workbench/zip-store.js');
   const {openProjectPackage}=await import('../../app/workbench/project.js');
@@ -44,6 +55,7 @@ async function waitForReady(page,edition){
     }),'base64');
     await page.locator('#file').setInputFiles({name:'typography.png',mimeType:'image/png',buffer:art});
     await waitForReady(page,'lusterTrial');
+    await waitForCandidates(page,'Trial');
     await page.locator('#export').click();
     const pngDownload=page.waitForEvent('download');await page.locator('#download').click();
     const png=fs.readFileSync(await (await pngDownload).path());
@@ -57,6 +69,7 @@ async function waitForReady(page,edition){
     assert.equal(await page.evaluate(()=>window.lusterDesktop),undefined);
     await page.locator('#file').setInputFiles({name:'typography.png',mimeType:'image/png',buffer:art});
     await waitForReady(page,'lusterPro');
+    await waitForCandidates(page,'Pro');
     await page.locator('[data-template="prism"]').click();
     await page.waitForFunction(()=>window.lusterPro?.state.ready&&window.lusterPro.state.recipe.template==='prism');
     for(const [key,value] of [['strength',0.64],['richness',30],['light',12]]){
