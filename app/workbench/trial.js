@@ -105,6 +105,15 @@ function updateHistory(){
   $('exploreTab').setAttribute('aria-selected',String(tab==='explore'));
   $('savedTab').setAttribute('aria-selected',String(tab==='saved'));
 }
+function thumbnailDataUrl(canvas){
+  return new Promise((resolve,reject)=>canvas.toBlob(blob=>{
+    if(!blob){reject(new Error('Candidate preview encoding failed'));return;}
+    const reader=new FileReader();
+    reader.onload=()=>resolve(reader.result);
+    reader.onerror=()=>reject(reader.error||new Error('Candidate preview reading failed'));
+    reader.readAsDataURL(blob);
+  },'image/png'));
+}
 async function thumbnails(recipes,onProgress=()=>{}){
   if(!art||!recipes.length)return [];
   const [width,height]=dimensions(132),[mapWidth,mapHeight]=dimensions(96);
@@ -119,7 +128,7 @@ async function thumbnails(recipes,onProgress=()=>{}){
       onProgress(`Rendering candidate ${index+1}/${recipes.length}…`);
       output.setParameters({strength:recipe.strength,richness:recipe.richness,light:recipe.light});
       output.setNormal(maps.normal);output.setSurface(maps.surface);output.setLayers({card:1,film:1});output.render({angle:5});
-      urls.push(output.canvas.toDataURL('image/png'));
+      urls.push(await thumbnailDataUrl(output.canvas));
     }
     return urls;
   }finally{output.dispose();}
