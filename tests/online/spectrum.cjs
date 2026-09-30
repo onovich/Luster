@@ -12,7 +12,6 @@ const server=createServer(async(req,res)=>{try{const pathname=new URL(req.url,'h
   const page=await browser.newPage();await page.goto('http://127.0.0.1:8799/');
   const rows=await page.evaluate(async()=>{
    const {LayeredRenderer}=await import('/src/webgl/layered-renderer.js');
-   
    const {makeMaterialMaps,templates}=await import('/app/workbench/material-maps.js');
    const source=await (await fetch('/src/shaders/B14.frag')).text();
    const baseline='#undef CIE_LOOKUP\n'+source;
@@ -20,6 +19,7 @@ const server=createServer(async(req,res)=>{try{const pathname=new URL(req.url,'h
    const ctx=background.getContext('2d');ctx.fillStyle='#f2e9d2';ctx.fillRect(0,0,128,160);ctx.fillStyle='#102343';ctx.fillRect(20,20,60,80);
    const initial=makeMaterialMaps({width:128,height:160,seed:2048});
    const updated=await LayeredRenderer.create(document.createElement('canvas'),{layout:'full',background,...initial,width:128,height:160});
+   if(!updated.spectrumTexture)throw new Error('The spectrum comparison requires OES_texture_float');
    const original=await LayeredRenderer.create(document.createElement('canvas'),{layout:'full',background,...initial,width:128,height:160});
    original.setVariantSource('B14',baseline);
    const rows=[];

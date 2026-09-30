@@ -12,6 +12,11 @@ jobs:
   verify:
     name: Verify ${{ matrix.browser }}
     runs-on: ${{ matrix.os }}
+    env:
+      LUSTER_USE_BUNDLED_CHROMIUM: '1'
+      LUSTER_FIREFOX_HEADED: ${{ matrix.browser == 'firefox' && '1' || '0' }}
+      # Native macOS OpenGL is too slow on this runner; exercise WebGL through ANGLE.
+      LUSTER_FIREFOX_ANGLE: ${{ matrix.browser == 'firefox' && '1' || '0' }}
     strategy:
       fail-fast: false
       matrix:
@@ -35,7 +40,4 @@ jobs:
       - run: npx playwright install ${{ matrix.browser }}
         if: runner.os == 'macOS'
       - run: npm run test:online -- --browser=${{ matrix.browser }}
-        env:
-          LUSTER_USE_BUNDLED_CHROMIUM: '1'
-          LUSTER_FIREFOX_HEADED: ${{ matrix.browser == 'firefox' && '1' || '0' }}
-          LUSTER_FIREFOX_ANGLE: ${{ matrix.browser == 'firefox' && '1' || '0' }}
+      - run: npm run test:spectrum -- --browser=${{ matrix.browser }}

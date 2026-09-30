@@ -36,23 +36,6 @@ async function waitForCandidates(page,edition){
   try{
     const context=await browser.newContext({acceptDownloads:true,viewport:{width:1366,height:768}});
     const page=await context.newPage(),errors=[],external=[];
-    if(process.env.LUSTER_BROWSER==='firefox'){
-      page.on('console',message=>{if(message.text().startsWith('[DEBUG-firefox-perf]'))console.log(message.text());});
-      await page.addInitScript(()=>{
-        const report=(name,ms,detail)=>console.debug('[DEBUG-firefox-perf]',JSON.stringify({name,ms:Math.round(ms),detail}));
-        const NativeWorker=window.Worker;
-        window.Worker=class extends NativeWorker{
-          constructor(...args){super(...args);this.times=new Map();this.addEventListener('message',event=>{const start=this.times.get(event.data.id);if(start!==undefined){report('worker',performance.now()-start,event.data.id);this.times.delete(event.data.id);}});}
-          postMessage(message,...args){this.times.set(message.id,performance.now());return super.postMessage(message,...args);}
-        };
-        const encode=HTMLCanvasElement.prototype.toDataURL;
-        HTMLCanvasElement.prototype.toDataURL=function(...args){const start=performance.now();try{return encode.apply(this,args);}finally{report('toDataURL',performance.now()-start,[this.width,this.height]);}};
-        for(const method of ['compileShader','linkProgram','drawArrays','texImage2D','readPixels']){
-          const original=WebGLRenderingContext.prototype[method];
-          WebGLRenderingContext.prototype[method]=function(...args){const start=performance.now();try{return original.apply(this,args);}finally{const ms=performance.now()-start;if(ms>50)report(method,ms);}};
-        }
-      });
-    }
     page.on('pageerror',error=>{errors.push(error.message);console.error('Browser script error:',error.stack);});
     page.on('request',request=>{if(!request.url().startsWith('http://127.0.0.1:8798/'))external.push(request.url());});
     assert.equal((await context.request.get(`${trialBase}app/workbench/pro.html`)).status(),404);
@@ -72,7 +55,6 @@ async function waitForCandidates(page,edition){
     }),'base64');
     await page.locator('#file').setInputFiles({name:'typography.png',mimeType:'image/png',buffer:art});
     await waitForReady(page,'lusterTrial');
-    if(process.env.LUSTER_BROWSER==='firefox')console.log('[DEBUG-firefox-perf]',await page.evaluate(()=>{const gl=window.lusterController.renderer.gl,ext=gl.getExtension('WEBGL_debug_renderer_info');return {vendor:gl.getParameter(gl.VENDOR),renderer:ext?gl.getParameter(ext.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER)};}));
     await waitForCandidates(page,'Trial');
     await page.locator('#export').click();
     const pngDownload=page.waitForEvent('download');await page.locator('#download').click();
