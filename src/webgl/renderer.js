@@ -39,6 +39,7 @@ export class FoilRenderer {
     const p=gl.getAttribLocation(program,'p'); gl.enableVertexAttribArray(p); gl.vertexAttribPointer(p,2,gl.FLOAT,false,0,0);
     for(const name of ['angle','lightAngle','period','spread','strength','kind','inspect','flatFloor','localBoost','threshold','softness','whiteGain','richness','bend','normalSize','normalMap','background']) this.uniforms[name]=gl.getUniformLocation(program,name);
     gl.uniform1i(this.uniforms.normalMap,0); gl.uniform1i(this.uniforms.background,1);
+    gl.uniform1f(gl.getUniformLocation(program,'spectrumSamples'),64);
   }
   setParameters(patch) { this.ensureLive(); this.parameters=validateParameters({...this.parameters,...patch}); }
   setNormal(normal) { this.ensureLive(); uploadNormal(this.gl,this.normalTexture,normal); this.normalSize=[normal.width,normal.height]; }

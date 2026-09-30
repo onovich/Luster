@@ -72,6 +72,7 @@ async function waitForCandidates(page,edition){
     }),'base64');
     await page.locator('#file').setInputFiles({name:'typography.png',mimeType:'image/png',buffer:art});
     await waitForReady(page,'lusterTrial');
+    if(process.env.LUSTER_BROWSER==='firefox')console.log('[DEBUG-firefox-perf]',await page.evaluate(()=>{const gl=window.lusterController.renderer.gl,ext=gl.getExtension('WEBGL_debug_renderer_info');return {vendor:gl.getParameter(gl.VENDOR),renderer:ext?gl.getParameter(ext.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER)};}));
     await waitForCandidates(page,'Trial');
     await page.locator('#export').click();
     const pngDownload=page.waitForEvent('download');await page.locator('#download').click();
