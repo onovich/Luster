@@ -1,6 +1,6 @@
 import {getLocale,setLocale,translateDocument,t} from './site-i18n.js';
 const root=new URL('../',import.meta.url),area=document.getElementById('pageFrames');
-const paths={home:'',product:'product/',pricing:'pricing/',editor:'trial/'};
+const paths=document.body.dataset.siteMode==='gallery'?{home:''}:{home:'',product:'product/',pricing:'pricing/',editor:'trial/'};
 const frames=new Map();let current=null,token=0;
 for(const link of document.querySelectorAll('.siteHeader a'))link.href=new URL(link.getAttribute('href'),location.href).href;
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));

@@ -78,3 +78,5 @@ body:has(.workspace) .center{background:var(--luster-blue)}.canvasWrap{backgroun
 .exhibitCard{height:auto}
 
 .exhibitCard{right:7%;width:60%}@media(max-width:700px){.exhibitCard{right:7%;width:55%}}
+
+.siteShell[data-site-mode=gallery] .siteNav{grid-template-columns:1fr;justify-self:center;width:auto}

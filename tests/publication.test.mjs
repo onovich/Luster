@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {readFile,readdir} from 'node:fs/promises';
+const root=new URL('../dist-public/',import.meta.url);
+const entries=await readdir(root);
+assert.deepEqual(entries.sort(),['.nojekyll','CNAME','content','demo','index.html','showcase','src'].sort());
+assert.deepEqual(await readdir(new URL('content/',root)),['home.html']);
+const html=await readFile(new URL('index.html',root),'utf8');
+assert.equal((html.match(/aria-current="page"/g)||[]).length,1);
+assert(html.includes('data-site-mode="gallery"'));
+assert(!/href="[^\"]*(?:product|pricing|trial)\//.test(html));
+console.log('Production boundary passed: gallery only; no product, pricing or workbench resources.');

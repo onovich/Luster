@@ -44,4 +44,5 @@ jobs:
         if: runner.os == 'macOS'
       - run: npm run test:online -- --browser=${{ matrix.browser }}
       - run: npm run test:public -- --browser=${{ matrix.browser }}
+      - run: npm run test:published -- --browser=${{ matrix.browser }}
       - run: npm run test:spectrum -- --browser=${{ matrix.browser }}
