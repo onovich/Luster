@@ -1,9 +1,12 @@
 name: Verify browser workbench
 
 on:
-  push:
-    branches: [main]
   pull_request:
+    branches: [main]
+
+concurrency:
+  group: workbench-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
