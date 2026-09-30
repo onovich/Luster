@@ -1,6 +1,6 @@
 import {presets} from '../core/presets.js';
 import {validateParameters,validatePose} from '../core/parameters.js';
-import {vertexShader,compile,uploadNormal,uploadBackground,loadShader} from './resources.js';
+import {vertexShader,compile,uploadNormal,uploadBackground,loadShader,createSpectrumTexture} from './resources.js';
 /** Owns GPU resources, never animation, DOM controls, assets or book layout. */
 export class FoilRenderer {
   static async create(canvas, {variant='B14',normal,background,parameters={},width=488,height=548}={}) {
@@ -17,6 +17,7 @@ export class FoilRenderer {
     this.canvas=canvas;
     const gl=this.gl=canvas.getContext('webgl',{preserveDrawingBuffer:true,alpha});
     if (!gl || !gl.getExtension('OES_standard_derivatives')) throw new Error('WebGL with derivatives is required');
+    this.spectrumTexture=createSpectrumTexture(gl);
     this.buffer=gl.createBuffer(); this.normalTexture=gl.createTexture(); this.baseTexture=gl.createTexture();
     gl.bindBuffer(gl.ARRAY_BUFFER,this.buffer);
     gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
@@ -27,7 +28,7 @@ export class FoilRenderer {
     this.ensureLive(); if (!presets[variant]) throw new RangeError('Unknown variant');
     const gl=this.gl, program=gl.createProgram(), shaders=[];
     try {
-      shaders.push(compile(gl,gl.VERTEX_SHADER,vertexShader)); shaders.push(compile(gl,gl.FRAGMENT_SHADER,source));
+      shaders.push(compile(gl,gl.VERTEX_SHADER,vertexShader)); shaders.push(compile(gl,gl.FRAGMENT_SHADER,(this.spectrumTexture?'#define CIE_LOOKUP\n':'')+source));
       for(const shader of shaders) gl.attachShader(program,shader);
       gl.linkProgram(program);
       if(!gl.getProgramParameter(program,gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program));
@@ -39,7 +40,7 @@ export class FoilRenderer {
     const p=gl.getAttribLocation(program,'p'); gl.enableVertexAttribArray(p); gl.vertexAttribPointer(p,2,gl.FLOAT,false,0,0);
     for(const name of ['angle','lightAngle','period','spread','strength','kind','inspect','flatFloor','localBoost','threshold','softness','whiteGain','richness','bend','normalSize','normalMap','background']) this.uniforms[name]=gl.getUniformLocation(program,name);
     gl.uniform1i(this.uniforms.normalMap,0); gl.uniform1i(this.uniforms.background,1);
-    gl.uniform1f(gl.getUniformLocation(program,'spectrumSamples'),64);
+    gl.uniform1i(gl.getUniformLocation(program,'spectrumMap'),3);
   }
   setParameters(patch) { this.ensureLive(); this.parameters=validateParameters({...this.parameters,...patch}); }
   setNormal(normal) { this.ensureLive(); uploadNormal(this.gl,this.normalTexture,normal); this.normalSize=[normal.width,normal.height]; }
@@ -54,6 +55,7 @@ export class FoilRenderer {
     gl.useProgram(this.program);
     gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,this.normalTexture);
     gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,this.baseTexture);
+    if(this.spectrumTexture){gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,this.spectrumTexture);}
     gl.uniform2f(u.normalSize,...this.normalSize);
     const values={...p,angle,lightAngle:p.light,strength:p.enabled?p.strength:0,kind,inspect};
     for(const [name,location] of Object.entries(u)) if(location!==null && typeof values[name]==='number') gl.uniform1f(location,values[name]);
@@ -65,6 +67,7 @@ export class FoilRenderer {
     gl.useProgram(null);
     if(this.program) gl.deleteProgram(this.program);
     gl.deleteTexture(this.normalTexture);gl.deleteTexture(this.baseTexture);gl.deleteBuffer(this.buffer);
+    if(this.spectrumTexture)gl.deleteTexture(this.spectrumTexture);
     this.disposed=true;
   }
 }
