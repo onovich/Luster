@@ -34,3 +34,47 @@ body:has(.workspace) .center{background:var(--luster-blue)}.canvasWrap{backgroun
 @media(max-width:700px){.editorActions .primary{min-height:44px}}
 
 .stageHeading{display:grid;grid-template-columns:minmax(0,1fr) auto;flex-shrink:0}.stageHeading #lookTitle{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.editorActions #status{width:180px;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}@media(max-width:700px){.stageHeading{position:relative;padding-bottom:22px}.editorActions #status{position:absolute;left:0;right:0;bottom:0;width:auto;max-width:100%;text-align:left}.editorActions{gap:0}}
+
+/* Product specimens share the gallery's exhibition proportions and paper palette. */
+.productPage main{width:min(1400px,100%)}
+.productPage .hero{grid-template-columns:1fr 1fr;gap:clamp(24px,5vw,80px);padding:64px 0 72px;min-height:660px}
+.productPage .hero h1{font-size:clamp(58px,6.4vw,94px);max-width:620px}
+.productPage .eyebrow{font-size:10px;letter-spacing:.14em;padding-left:26px;position:relative}
+.productPage .eyebrow:before{content:'';width:14px;height:14px;border:1px solid currentColor;border-radius:50%;position:absolute;left:0;top:0}
+.productPage .heroCopy>p{max-width:430px;font-size:15px;line-height:1.7}
+.productPage .heroCopy .note{font-size:11px;max-width:420px;opacity:.72}
+.materialExhibit{position:relative;min-height:520px;display:grid;place-items:center;padding:24px 40px 90px;isolation:isolate}
+.exhibitOrbit{position:absolute;width:96%;aspect-ratio:1;border:1px solid #f5ecd92b;border-radius:50%;z-index:-1}
+.exhibitOrbit:after{content:'';position:absolute;inset:12%;border:1px solid #f5ecd91c;border-radius:50%}
+.exhibitIndex{position:absolute;left:0;top:12px;font-size:10px;letter-spacing:.2em}
+.productPage .heroMaterial{width:78%;max-width:340px;padding:0;border:0;background:transparent;transform:rotate(-8deg);box-shadow:12px 22px 42px #031b6560}
+.productPage .heroMaterial figcaption{font-size:9px;position:absolute;top:100%;left:0;right:0;padding-top:8px}
+.exhibitCard{position:absolute;right:0;bottom:70px;width:66%;transform:rotate(9deg);box-shadow:0 20px 42px #031b6570;border:1px solid #f5ecd970}
+.exhibitCaption{position:absolute;bottom:8px;font-size:9px;letter-spacing:.12em;opacity:.65;text-align:center}
+.productPage .steps{display:grid;grid-template-columns:.8fr 1.7fr;gap:24px 48px;padding:48px 0 60px}
+.productPage .steps .sectionLabel{grid-column:1/-1}
+.productPage .steps h2{margin:0;max-width:280px;font-size:36px}
+.productPage .steps ol{gap:28px}
+.productPage .stepNumber{border:0;border-bottom:1px solid var(--luster-line);padding:0 0 12px;display:block;font-size:11px}
+.productPage .steps h3{font-size:18px;margin:20px 0 12px}
+.productPage .steps p{font-size:13px;opacity:.8}
+.productPage .examples{grid-template-columns:.8fr 1.7fr;padding:64px 0;gap:48px}
+.productPage .examples h2{font-size:40px}
+.productPage .exampleLinks{grid-template-columns:1fr 1fr;gap:24px}
+.productPage .exampleLinks a{background:transparent;color:var(--luster-paper);padding:0;gap:10px;border-radius:0}
+.productPage .exampleLinks img{width:100%;height:260px;object-fit:contain;background:#0c2c91;padding:26px;margin-bottom:12px;transition:background .2s}
+.productPage .exampleLinks a:hover img{background:#214bc8}
+.productPage .exampleLinks strong{font-size:24px;font-weight:500;letter-spacing:-.02em}
+.productPage .exampleLinks span{font-size:10px;letter-spacing:.08em}
+.productPage .plans{padding:56px 36px;background:var(--luster-paper);color:var(--luster-blue);margin-bottom:32px;border:0}
+.productPage .plans .sectionLabel{color:inherit}.productPage .plans .action{background:var(--luster-blue);color:var(--luster-paper);border-color:var(--luster-blue)}
+.productPage .plans h2{font-size:48px;margin-bottom:16px}
+.canvasWrap{perspective:1800px;perspective-origin:center}.canvasWrap canvas{transform-origin:center;backface-visibility:hidden}
+@media(max-width:900px){.productPage .hero{min-height:0}.materialExhibit{min-height:440px;padding-left:16px;padding-right:16px}.productPage .steps,.productPage .examples{grid-template-columns:1fr}.productPage .steps h2{max-width:100%}.productPage .exampleLinks img{height:280px}}
+@media(max-width:700px){.productPage .hero{grid-template-columns:1fr;padding:36px 0 40px;gap:12px}.productPage .hero h1{font-size:clamp(52px,12vw,76px)}.materialExhibit{width:min(480px,100%);justify-self:center;min-height:410px;padding-bottom:76px}.productPage .heroMaterial{width:65%}.exhibitCard{right:4%;bottom:64px;width:57%}.productPage .steps ol{grid-template-columns:1fr;gap:24px}.productPage .steps,.productPage .examples{padding:36px 0}.productPage .exampleLinks{gap:16px}.productPage .exampleLinks img{height:180px;padding:12px}.productPage .exampleLinks strong{font-size:20px}.productPage .plans{padding:32px 20px}.productPage .plans h2{font-size:36px}}
+@media(prefers-reduced-motion:reduce){.productPage .exampleLinks img{transition:none}}
+.productPage .heroCopy,.materialExhibit,.productPage .exampleLinks,.productPage .examples>div{min-width:0}.materialExhibit{overflow:clip}@media(max-width:400px){.productPage .hero h1{font-size:44px}.productPage .examples h2{font-size:34px}}
+
+.exhibitCard{height:auto}
+
+.exhibitCard{right:7%;width:60%}@media(max-width:700px){.exhibitCard{right:7%;width:55%}}
