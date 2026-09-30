@@ -8,7 +8,8 @@ const base=process.env.LUSTER_PUBLIC_URL||'http://127.0.0.1:8798/dist/';
  try{
   const context=await browser.newContext({acceptDownloads:true});
   const page=await context.newPage(),errors=[];
-  page.on('pageerror',error=>errors.push(error.message));
+  page.on('pageerror',error=>{errors.push(error.message);console.error('Public page error:',page.url(),error.stack);});
+  page.on('requestfailed',request=>console.error('Public request failed:',request.url(),request.failure()?.errorText));
   const output=path.resolve(__dirname,'../../.test-output/public');fs.mkdirSync(output,{recursive:true});
   for(const width of [320,768,1440]){
    await page.setViewportSize({width,height:900});await page.goto(base);
@@ -32,7 +33,10 @@ const base=process.env.LUSTER_PUBLIC_URL||'http://127.0.0.1:8798/dist/';
   await page.locator('#file').setInputFiles({name:'invalid.txt',mimeType:'text/plain',buffer:Buffer.from('invalid')});
   await page.locator('#errorNotice').waitFor({state:'visible'});
   await page.locator('[data-sample="card"]').click();
-  await page.waitForFunction(()=>window.lusterTrial?.state.ready&&document.getElementById('errorNotice').hidden);
+  await page.waitForFunction(()=>window.lusterTrial?.state.ready
+   &&window.lusterController.file?.name==='luster-example-card.png'
+   &&[...document.querySelectorAll('[data-sample]')].every(button=>!button.disabled)
+   &&document.getElementById('errorNotice').hidden);
   await page.goto(`${base}showcase/`);
   await page.waitForFunction(()=>!!document.querySelector('canvas')?.getContext('webgl'));
   assert.deepEqual(errors,[]);
