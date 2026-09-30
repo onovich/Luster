@@ -16,3 +16,9 @@ GitHub Pages must use **GitHub Actions** as its source, with custom domain `lust
 The Pages workflow publishes `dist/`, including the gallery home, product page and Trial. Pro remains private to development: its static artifact has no access control and must be served behind server-enforced entitlement before release. No accounts or payment service are connected. The landing describes local storage, host logging, image limits and permitted Trial PNG use. See [online workbench status](online-workbench.md).
 
 Cloudflare DNS: CNAME `luster` → `onovich.github.io`, **DNS only**. Enable GitHub Pages **Enforce HTTPS** after its certificate is ready. DNS configuration and certificate issuance are separate from a successful Actions deployment.
+
+## Global shell and languages
+
+Published entry routes render one shared navigation shell. `src/site-app.js` changes routes through history and fades only the content region. Same-origin content documents in `content/` isolate styles and WebGL lifecycles, retaining each view after its first load so editor artwork and parameters survive navigation. Inactive views stop auto rotation. Direct URLs and legacy redirects remain supported; navigation honors reduced-motion preferences. No Pro resources are published.
+
+`src/site-i18n.js` centralizes English/Chinese UI strings and dynamic status formats. The initial language follows the browser (`zh*` → Simplified Chinese, otherwise English). A manual choice is stored as `luster.locale` in localStorage and overrides browser detection. The global language selector updates all loaded views without rebuilding artwork. Artwork text and downloaded artwork are not translated. Browser checks verify the persistent header, editor retention, history, locale detection/persistence, reduced motion, Chinese errors and PNG downloads.

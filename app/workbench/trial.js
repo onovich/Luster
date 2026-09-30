@@ -9,6 +9,7 @@ import {makeSampleFile} from './sample-artwork.js';
 const $=id=>document.getElementById(id);
 let file=null,art=null,renderer=null,currentMaps=null,revision=0,groups=[],groupIndex=-1,selectedIndex=0,saved=[],tab='explore';
 let sourceDimensions=null;
+let cachedSourceBytes=null;
 let project=new ProjectSession(),renderJob=0,loadJob=0,saveJob=0,saveTimer,autoFrame=0,focusBeforeModal=null;
 const mapEngine=new MapEngine(16),thumbnailEngine=new MapEngine(48);
 let mapJob=0,mapTask=Promise.resolve();
@@ -169,6 +170,7 @@ async function loadFile(next,{restoring=false}={}){
   const job=++loadJob;status('Decoding image…');
   try{
     const loaded=await loadArtwork(next);if(job!==loadJob)return;
+    const bytes=new Uint8Array(await next.arrayBuffer());if(job!==loadJob)return;
     let nextRenderer=renderer;
     if(nextRenderer){nextRenderer.setBackground(loaded.canvas);nextRenderer.resize(loaded.canvas.width,loaded.canvas.height);}
     else{
@@ -176,7 +178,7 @@ async function loadFile(next,{restoring=false}={}){
       nextRenderer=await LayeredRenderer.create($('preview'),{layout:'full',background:loaded.canvas,normal:placeholder.normal,surface:placeholder.surface,width:loaded.canvas.width,height:loaded.canvas.height});
     }
     if(job!==loadJob){if(!renderer)nextRenderer.dispose();return;}
-    file=next;art=loaded.canvas;renderer=nextRenderer;sourceDimensions=loaded.original;
+    file=next;cachedSourceBytes=bytes;art=loaded.canvas;renderer=nextRenderer;sourceDimensions=loaded.original;
     $('preview').style.display='block';$('welcome').hidden=true;
     $('artThumb').src=art.toDataURL('image/png');$('artThumb').hidden=false;$('artEmpty').hidden=true;
     $('imageInfo').textContent=`${next.name} · ${loaded.original[0]} × ${loaded.original[1]} px${loaded.scaled?' · preview scaled':''}`;
@@ -206,7 +208,7 @@ async function importProject({sourceBytes,sourceName,sourceMime,recipe,angle:imp
 }
 async function resetProject(){
   stopRotation();clearTimeout(saveTimer);saveJob++;loadJob++;renderJob++;mapJob++;mapEngine.cancel();thumbnailEngine.cancel();if(renderer)renderer.dispose();
-  file=null;art=null;renderer=null;currentMaps=null;sourceDimensions=null;groups=[];groupIndex=-1;selectedIndex=0;saved=[];revision++;
+  file=null;cachedSourceBytes=null;art=null;renderer=null;currentMaps=null;sourceDimensions=null;groups=[];groupIndex=-1;selectedIndex=0;saved=[];revision++;
   project=new ProjectSession();view='material';foil=true;angle=5;
   $('preview').style.display='none';$('welcome').hidden=false;$('artThumb').hidden=true;$('artEmpty').hidden=false;
   $('imageInfo').textContent='PNG, JPEG, WebP · processed locally';$('lookTitle').textContent='Your material starts here';
@@ -216,13 +218,12 @@ async function resetProject(){
   document.dispatchEvent(new CustomEvent('luster:recipe-change',{detail:{revision}}));
 }
 function scheduleSave(){
-  if(!file)return;
+  if(!file||!cachedSourceBytes)return;
   clearTimeout(saveTimer);
-  const job=++saveJob,source=file;
+  const job=++saveJob,source=file,bytes=cachedSourceBytes;
   $('saveStatus').textContent='Saving locally…';
   saveTimer=setTimeout(async()=>{
     try{
-      const bytes=new Uint8Array(await source.arrayBuffer());
       if(job!==saveJob||source!==file)return;
       const db=await database();
       if(job!==saveJob||source!==file)return;
