@@ -47,10 +47,11 @@ for(const build of builds){
   await mkdir(path.join(site,'assets'),{recursive:true});
   for(const name of publicAssets)await copyFile(path.join(workbench,'assets',name),path.join(site,'assets',name));
   await copyFile(path.join(workbench,build.index),path.join(site,'index.html'));
+  await copyFile(path.join(workbench,'online-pricing-index.html'),path.join(site,'pricing.html'));
   await copyFile(path.join(workbench,'online-entry.css'),path.join(site,'online-entry.css'));
   await copyTree(path.join(repo,'src'),path.join(site,'src'));
   if(build.unity)await copyTree(path.join(workbench,'unity'),path.join(app,'unity'));
-  const expected=new Set(['index.html','online-entry.css',...build.files.map(name=>`app/workbench/${name}`)]);
+  const expected=new Set(['index.html','pricing.html','online-entry.css',...build.files.map(name=>`app/workbench/${name}`)]);
   for(const name of publicAssets)expected.add(`assets/${name}`);
   const renderer=await collect(path.join(site,'src'));
   for(const name of renderer)expected.add(`src/${name}`);

@@ -6,7 +6,7 @@
 
 ![Luster — 交互式镭射材质](docs/social-preview.png)
 
-[材质展厅](https://luster.onovich.com/) · [产品介绍](https://luster.onovich.com/product/) · [在线试用](https://luster.onovich.com/trial/) · [接入指南](docs/guide.zh-CN.md) · [卡面材质](docs/card-materials.md)
+[材质展厅](https://luster.onovich.com/) · [产品介绍](https://luster.onovich.com/product/) · [价格方案](https://luster.onovich.com/pricing/) · [在线试用](https://luster.onovich.com/trial/) · [接入指南](docs/guide.zh-CN.md) · [卡面材质](docs/card-materials.md)
 
 纯网页版 Trial 已开放：上传作品或使用内置示例，探索材质并下载最长边 512px 的免费无水印 PNG。Pro 正在开发中，未包含在公开站点内。参见[网页版工作台状态](docs/online-workbench.md)。
 
