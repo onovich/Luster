@@ -13,6 +13,11 @@ const base=process.env.LUSTER_PUBLIC_URL||'http://127.0.0.1:8798/dist/';
   const output=path.resolve(__dirname,'../../.test-output/public');fs.mkdirSync(output,{recursive:true});
   for(const width of [320,768,1440]){
    await page.setViewportSize({width,height:900});await page.goto(base);
+   await page.waitForFunction(()=>window.foilDemo?.state().ready,undefined,{timeout:60000});
+   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`Gallery overflow at ${width}`);
+   await page.screenshot({path:path.join(output,`gallery-${width}.png`),fullPage:true});
+   await page.getByRole('link',{name:'About Luster',exact:true}).click();
+   assert.equal(new URL(page.url()).pathname,new URL(`${base}product/`).pathname);
    await page.locator('.heroMaterial img').waitFor();
    assert(await page.locator('.heroMaterial img').evaluate(image=>image.complete&&image.naturalWidth>0));
    assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`Landing overflow at ${width}`);
@@ -37,9 +42,21 @@ const base=process.env.LUSTER_PUBLIC_URL||'http://127.0.0.1:8798/dist/';
    &&window.lusterController.file?.name==='luster-example-card.png'
    &&[...document.querySelectorAll('[data-sample]')].every(button=>!button.disabled)
    &&document.getElementById('errorNotice').hidden);
+  await page.getByRole('link',{name:'About Luster',exact:true}).click();
+  await page.getByRole('link',{name:'Material gallery ↗',exact:true}).click();
+  await page.waitForFunction(()=>window.foilDemo?.state().ready,undefined,{timeout:60000});
+  await page.getByRole('link',{name:'Start creating ↗',exact:true}).click();
+  await page.waitForFunction(()=>!!window.lusterTrial);
+  await page.evaluate(async()=>{await window.lusterRestoration;await window.lusterController.whenMapsReady();});
+  assert.equal(new URL(page.url()).pathname,new URL(`${base}trial/`).pathname);
+  await page.goto(`${base}trial/app/workbench/trial.html?sample=poster`);
+  await page.waitForURL(url=>url.pathname===new URL(`${base}trial/`).pathname);
+  await page.waitForFunction(()=>window.lusterController?.file?.name==='luster-example-poster.png'
+   &&[...document.querySelectorAll('[data-sample]')].every(button=>!button.disabled));
   await page.goto(`${base}showcase/`);
-  await page.waitForFunction(()=>!!document.querySelector('canvas')?.getContext('webgl'));
+  await page.waitForURL(url=>url.pathname===new URL(base).pathname);
+  await page.waitForFunction(()=>window.foilDemo?.state().ready,undefined,{timeout:60000});
   assert.deepEqual(errors,[]);
-  console.log('Public Trial: responsive landing, example, 512px PNG, error recovery, Pro exclusion, showcase passed');
+  console.log('Public site: gallery home, product, Trial, legacy redirects with examples, 512px PNG and Pro exclusion passed');
  }finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});
