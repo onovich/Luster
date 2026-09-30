@@ -1,4 +1,5 @@
 export const messages={
+ 'Orbit explorer with a foil finish':'带有镭射材质的 Orbit explorer 卡片','Shift the Light poster':'Shift the Light 海报','Orbit explorer card':'Orbit explorer 卡片','A LITTLE MOVEMENT. A DIFFERENT MATERIAL.':'一点变化，不同的材质。',
  'Home':'首页','Product':'产品','Pricing':'价格','Editor':'编辑器','Language':'语言','Main navigation':'主导航','Luster home':'Luster 首页','Material gallery':'材质展厅','Skip to content':'跳到正文',
  'For designers & independent game makers':'为设计师与独立游戏开发者打造','Let your artwork':'让你的作品','catch the light.':'随光而动。',
  'Explore foil, grain and folded surfaces on your own artwork. Move the light, find a finish, and take a PNG back to your design.':'为自己的作品探索镭射、颗粒和褶皱表面。移动光线，找到喜欢的效果，再将 PNG 用于你的设计。',

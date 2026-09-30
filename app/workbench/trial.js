@@ -5,6 +5,7 @@ import {MapEngine} from './map-engine.js';
 import {ProjectSession,normalizeRecipe} from './recipe.js';
 import {createTrialHandoff} from './trial-handoff.js';
 import {makeSampleFile} from './sample-artwork.js';
+import {PoseTween} from '../../src/core/parameters.js';
 
 const $=id=>document.getElementById(id);
 let file=null,art=null,renderer=null,currentMaps=null,revision=0,groups=[],groupIndex=-1,selectedIndex=0,saved=[],tab='explore';
@@ -14,6 +15,17 @@ let project=new ProjectSession(),renderJob=0,loadJob=0,saveJob=0,saveTimer,autoF
 const mapEngine=new MapEngine(16),thumbnailEngine=new MapEngine(48);
 let mapJob=0,mapTask=Promise.resolve();
 let view='material',foil=true,angle=5;
+const pose=new PoseTween(angle),reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
+let poseFrame=0;
+function settlePose(){cancelAnimationFrame(poseFrame);poseFrame=0;pose.set(angle);}
+function tiltTo(target){
+  if(reducedMotion.matches){angle=target;pose.set(angle);updateAngleOnly();return;}
+  pose.to(target);
+  if(poseFrame)return;
+  let previous=performance.now();
+  const tick=now=>{poseFrame=0;pose.advance(Math.max(0,Math.min((now-previous)/1000,.1)));previous=now;angle=pose.angle;updateAngleOnly();if(pose.active)poseFrame=requestAnimationFrame(tick);else scheduleSave();};
+  poseFrame=requestAnimationFrame(tick);
+}
 const maxSide=256;
 const trialPngLimit=512;
 const nextRandom=()=>crypto.getRandomValues(new Uint32Array(1))[0];
@@ -89,10 +101,12 @@ function redoRecipe(){
 }
 function render(){
   if(!renderer)return;
+  $('preview').style.transform=view==='original'?'none':`rotateY(${angle*.8}deg)`;
   renderer.setLayers(view==='original'?{card:0,film:0}:{card:1,film:foil?1:0});
   renderer.render({angle});
 }
 function updateView(){
+  settlePose();
   $('original').setAttribute('aria-pressed',String(view==='original'));
   $('material').setAttribute('aria-pressed',String(view==='material'));
   $('foil').disabled=view==='original';$('foil').checked=foil;
@@ -304,8 +318,9 @@ function closeModal(){$('modalBackdrop').hidden=true;focusBeforeModal?.focus();}
 function stopRotation(){$('rotate').checked=false;if(autoFrame)cancelAnimationFrame(autoFrame);autoFrame=0;scheduleSave();}
 function startRotation(){
   if(matchMedia('(prefers-reduced-motion: reduce)').matches){$('rotate').checked=false;status('Auto rotate is off for reduced motion.');return;}
-  let previous=performance.now();
-  const tick=now=>{if(!$('rotate').checked)return;angle=Math.max(-18,Math.min(18,angle+(now-previous)*.014));previous=now;if(angle>=18)angle=-18;updateAngleOnly();autoFrame=requestAnimationFrame(tick);};
+  settlePose();
+  const amplitude=Math.max(4,Math.abs(angle)),start=performance.now(),phase=Math.asin(angle/amplitude);
+  const tick=now=>{if(!$('rotate').checked)return;angle=amplitude*Math.sin(phase+(now-start)*Math.PI/4000);pose.set(angle);updateAngleOnly();autoFrame=requestAnimationFrame(tick);};
   autoFrame=requestAnimationFrame(tick);
 }
 function updateAngleOnly(){$('angle').value=String(angle);$('angleValue').textContent=`${Number(angle).toFixed(1)}°`;render();}
@@ -323,9 +338,21 @@ $('angle').addEventListener('input',event=>{stopRotation();angle=Number(event.ta
 $('rotate').addEventListener('change',event=>event.target.checked?startRotation():stopRotation());
 $('fit').addEventListener('click',()=>{$('canvasWrap').classList.remove('actual');$('fit').setAttribute('aria-pressed','true');$('actual').setAttribute('aria-pressed','false');});
 $('actual').addEventListener('click',()=>{$('canvasWrap').classList.add('actual');$('fit').setAttribute('aria-pressed','false');$('actual').setAttribute('aria-pressed','true');});
-let dragX=null;$('preview').addEventListener('pointerdown',event=>{dragX=event.clientX;$('preview').setPointerCapture(event.pointerId);stopRotation();});
-$('preview').addEventListener('pointermove',event=>{if(dragX===null)return;angle=Math.max(-18,Math.min(18,angle+(event.clientX-dragX)*.13));dragX=event.clientX;updateAngleOnly();});
-$('preview').addEventListener('pointerup',()=>{dragX=null;scheduleSave();});
+let dragX=null,dragAngle=0;
+$('preview').addEventListener('pointerdown',event=>{dragX=event.clientX;dragAngle=angle;$('preview').setPointerCapture(event.pointerId);stopRotation();});
+$('preview').addEventListener('pointermove',event=>{
+  if(!renderer||view==='original')return;
+  if(dragX!==null){tiltTo(Math.max(-18,Math.min(18,dragAngle+(event.clientX-dragX)*.13)));return;}
+  if(event.pointerType==='touch'||$('rotate').checked||reducedMotion.matches)return;
+  const rect=$('preview').getBoundingClientRect(),x=event.clientX-rect.left-rect.width/2;
+  const target=Math.abs(x)<rect.width*3/1190?pose.target:x<0?-4:4;
+  if(pose.target!==target)tiltTo(target);
+});
+const releaseDrag=()=>{dragX=null;scheduleSave();};
+$('preview').addEventListener('pointerup',releaseDrag);
+$('preview').addEventListener('pointercancel',releaseDrag);
+$('preview').addEventListener('lostpointercapture',releaseDrag);
+$('preview').addEventListener('pointerleave',()=>{if(dragX===null&&!$('rotate').checked&&renderer)tiltTo(0);});
 $('shuffle').addEventListener('click',()=>{groups=groups.slice(0,groupIndex+1);groups.push(nextRandom());selectGroup(groups.length-1);});
 $('previous').addEventListener('click',()=>selectGroup(groupIndex-1));
 $('next').addEventListener('click',()=>{if(groupIndex+1<groups.length)selectGroup(groupIndex+1);else $('shuffle').click();});

@@ -14,7 +14,7 @@ const proOnly=[
   'pro.html','pro.css','pro.js','project.js','export-web.mjs','export-unity.mjs',
   'resource-loader.js','runtime-web.html','runtime-web.js'
 ];
-const publicAssets=['preview-poster.png'];
+const publicAssets=['preview-poster.png','preview-card.png'];
 const builds=[
   {name:'trial',files:shared,index:'online-trial-index.html',unity:false},
   {name:'pro',files:[...shared,...proOnly],index:'online-pro-index.html',unity:true}
