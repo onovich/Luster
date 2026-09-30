@@ -19,7 +19,7 @@ npm run test:online
 
 The build uses an explicit source list and rejects stale files, desktop paths and Pro resources in the Trial artifact. `npm run test:online` runs a real browser against both built roots, verifies downloads and exported Web preview parity, checks for external requests and script errors, and exercises layouts from 320 to 1920 CSS pixels. The same command runs in CI. The current GitHub Pages workflow still publishes only the separate demo build (`npm run build`).
 
-For local compatibility checks, install the desired Playwright browser, then run `npm run test:online -- --browser=webkit` or `npm run test:stress -- --browser=webkit`. The stress check uses 4096 × 3072 artwork, rapid template and parameter changes, local recovery storage, and keyboard operation of the export dialog. Chromium and WebKit passed these checks locally on 2026-09-28. Firefox could not launch on this Windows host (`spawn UNKNOWN`), so Firefox support remains unverified. CI currently runs Chromium only; the local timings are not a device performance budget.
+For local compatibility checks, install the desired Playwright browser, then run `npm run test:online -- --browser=webkit` or `npm run test:stress -- --browser=webkit`. The stress check uses 4096 × 3072 artwork, rapid template and parameter changes, local recovery storage, and keyboard operation of the export dialog. Chromium and WebKit passed these checks locally on 2026-09-28, and WebKit passed again on 2026-10-01. Firefox could not launch on this Windows host: the Windows SideBySide event reports a missing `mozglue` assembly, even after a forced Playwright Firefox reinstall. CI now exercises Chromium, Firefox and WebKit on Linux. Browser engine coverage is not certification of Safari, physical mobile devices or another GPU; the local timings are not a device performance budget.
 
 ## Before a public workbench release
 
@@ -31,4 +31,4 @@ For local compatibility checks, install the desired Playwright browser, then run
 - Decide whether browser or service-based AI integration is part of this release. The retired desktop MCP integration is not included in either site build.
 
 The supported Unity export target is Unity 6000.4 Built-in Render Pipeline, Gamma color, uGUI. URP and other pipelines are not part of the verified target.
-The fixed-target comparison procedure is in [Unity acceptance](unity-acceptance.md); Unity rendering is a separate manual gate and is not run by the Chromium CI job.
+The fixed-target comparison procedure and fresh four-template result are in [Unity acceptance](unity-acceptance.md); Unity rendering is a separate manual gate and is not run by browser CI.
