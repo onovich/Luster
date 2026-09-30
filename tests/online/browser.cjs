@@ -8,6 +8,16 @@ const repo=path.resolve(__dirname,'../..'),output=path.join(repo,'.test-output')
 const trialBase='http://127.0.0.1:8798/dist-online/trial/';
 const proBase='http://127.0.0.1:8798/dist-online/pro/';
 const sha=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
+async function waitForReady(page,edition){
+  try{await page.waitForFunction(key=>window[key]?.state.ready,edition);}
+  catch(error){
+    console.error('Workbench did not become ready:',await page.evaluate(key=>({
+      edition:key,state:window[key]?.state,status:document.getElementById('status')?.textContent,
+      mapMode:window.lusterController?.mapMode,webgl:!!document.createElement('canvas').getContext('webgl')
+    }),edition));
+    throw error;
+  }
+}
 (async()=>{
   const {readStoredZip}=await import('../../app/workbench/zip-store.js');
   const {openProjectPackage}=await import('../../app/workbench/project.js');
@@ -33,7 +43,7 @@ const sha=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
       return canvas.toDataURL('image/png').split(',')[1];
     }),'base64');
     await page.locator('#file').setInputFiles({name:'typography.png',mimeType:'image/png',buffer:art});
-    await page.waitForFunction(()=>window.lusterTrial?.state.ready);
+    await waitForReady(page,'lusterTrial');
     await page.locator('#export').click();
     const pngDownload=page.waitForEvent('download');await page.locator('#download').click();
     const png=fs.readFileSync(await (await pngDownload).path());
@@ -46,7 +56,7 @@ const sha=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
     assert.equal(await page.locator('#saveAsProject').count(),0);
     assert.equal(await page.evaluate(()=>window.lusterDesktop),undefined);
     await page.locator('#file').setInputFiles({name:'typography.png',mimeType:'image/png',buffer:art});
-    await page.waitForFunction(()=>window.lusterPro?.state.ready);
+    await waitForReady(page,'lusterPro');
     await page.locator('[data-template="prism"]').click();
     await page.waitForFunction(()=>window.lusterPro?.state.ready&&window.lusterPro.state.recipe.template==='prism');
     for(const [key,value] of [['strength',0.64],['richness',30],['light',12]]){
