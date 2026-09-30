@@ -1,4 +1,4 @@
-name: Deploy demo to Pages
+name: Deploy public Trial to Pages
 
 on:
   push:
@@ -22,7 +22,7 @@ jobs:
           node-version: '24'
       - name: Check contracts and publication boundary
         run: npm test
-      - name: Build static demo
+      - name: Build public Trial and showcase
         run: npm run build
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4

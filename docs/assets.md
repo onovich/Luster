@@ -25,3 +25,7 @@ The demo loads lossless WebP copies of the exhibit binder, studio background and
 The exhibit starts at a frontal optical angle with reflection strength 0.14 and one card lifted, unless reduced motion is requested. These are presentation defaults; Reset restores the unmodified B14 preset. The shader algorithms and normal fields remain unchanged.
 
 Card hover lifts only the printed card by 55/228 of the pocket height, with a 160 ms cubic-out entrance and linear return. The pocket and its normal field stay fixed. Reduced-motion preferences disable hover movement.
+
+## Public Trial examples
+
+`app/workbench/sample-artwork.js` draws original poster and game-card examples using canvas primitives and system Arial. `app/workbench/assets/preview-poster.png` is a Luster render of the poster. No external artwork or font download is involved. The public Trial grants use of downloaded PNGs in users' projects with authorized artwork; it does not grant redistribution rights to Luster source or shaders.

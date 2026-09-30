@@ -4,6 +4,7 @@ import {makeSoftFolds} from './soft-folds.js';
 import {MapEngine} from './map-engine.js';
 import {ProjectSession,normalizeRecipe} from './recipe.js';
 import {createTrialHandoff} from './trial-handoff.js';
+import {makeSampleFile} from './sample-artwork.js';
 
 const $=id=>document.getElementById(id);
 let file=null,art=null,renderer=null,currentMaps=null,revision=0,groups=[],groupIndex=-1,selectedIndex=0,saved=[],tab='explore';
@@ -13,11 +14,13 @@ const mapEngine=new MapEngine(16),thumbnailEngine=new MapEngine(48);
 let mapJob=0,mapTask=Promise.resolve();
 let view='material',foil=true,angle=5;
 const maxSide=256;
+const trialPngLimit=512;
 const nextRandom=()=>crypto.getRandomValues(new Uint32Array(1))[0];
 const recipeKey=recipe=>JSON.stringify(recipe);
 const currentRecipe=()=>project.read().recipe;
 const templateNames={'soft-folds':'Soft folds','fine-grain':'Fine grain',prism:'Prism',smooth:'Smooth'};
 function status(message){$('status').textContent=message;}
+function showError(message){status(message);const notice=$('errorNotice');if(notice){notice.hidden=false;notice.textContent=message+' You can choose another image or try an example.';}}
 function dimensions(scale){const longest=Math.max(art.width,art.height);return [Math.max(32,Math.round(scale*art.width/longest)),Math.max(32,Math.round(scale*art.height/longest))];}
 const mapInput=(width,height,recipe)=>({template:recipe.template,width,height,seed:recipe.seed,density:recipe.density,depth:recipe.depth,direction:recipe.direction});
 function groupRecipes(seed){
@@ -54,7 +57,7 @@ function paintRecipe(recipe){
       renderer.setNormal(maps.normal);renderer.setSurface(maps.surface);render();
       document.dispatchEvent(new Event('luster:maps-ready'));
       return true;
-    }).catch(error=>{if(job===mapJob&&error.name!=='AbortError')status(error.message);return false;});
+    }).catch(error=>{if(job===mapJob&&error.name!=='AbortError')showError(error.message);return false;});
     return mapTask;
   }
   return Promise.resolve(true);
@@ -128,9 +131,12 @@ async function drawCards(){
   thumbnailEngine.cancel();
   updateHistory();
   $('cards').textContent='';
+  $('cards').setAttribute('aria-busy','false');
   if(!art){$('cards').textContent='Choose an image to see six finishes.';return;}
   if(!list.length){$('cards').textContent=tab==='saved'?'No saved looks yet. Save a finish from Explore.':'No candidates yet.';return;}
   status('Generating candidate previews…');
+  $('cards').setAttribute('aria-busy','true');
+  for(let index=0;index<list.length;index++){const placeholder=document.createElement('div');placeholder.className='cardPlaceholder';placeholder.textContent=`Preparing look ${String(index+1).padStart(2,'0')}…`;$('cards').append(placeholder);}
   try{
     const urls=await thumbnails(list,message=>{if(job===renderJob)status(message);});
     if(job!==renderJob)return;
@@ -155,9 +161,11 @@ async function drawCards(){
     });
     $('cards').replaceChildren(fragment);
     status(`Ready · revision ${revision}`);
-  }catch(error){if(job===renderJob)status(error.message);}
+  }catch(error){if(job===renderJob&&error.name!=='AbortError')showError(error.message);}
+  finally{if(job===renderJob)$('cards').setAttribute('aria-busy','false');}
 }
 async function loadFile(next,{restoring=false}={}){
+  if($('errorNotice'))$('errorNotice').hidden=true;
   const job=++loadJob;status('Decoding image…');
   try{
     const loaded=await loadArtwork(next);if(job!==loadJob)return;
@@ -178,7 +186,12 @@ async function loadFile(next,{restoring=false}={}){
     if(job!==loadJob)return false;
     await drawCards();scheduleSave();
     return true;
-  }catch(error){status(error.message);return false;}
+  }catch(error){showError(error.message.includes('WebGL')?'Your browser could not start the material preview. Check that graphics acceleration is enabled or try another browser.':error.message);return false;}
+}
+async function loadExample(kind){
+  const buttons=[...document.querySelectorAll('[data-sample]')];buttons.forEach(button=>button.disabled=true);
+  try{await loadFile(await makeSampleFile(kind));}catch(error){showError(error.message);}
+  finally{buttons.forEach(button=>button.disabled=false);}
 }
 function selectGroup(index){
   if(index<0||index>=groups.length)return;
@@ -255,14 +268,18 @@ async function downloadPng(){
   const snapshot={revision,angle,view,foil,maps:currentMaps,art,recipe:currentRecipe()};status(`Encoding revision ${snapshot.revision}…`);
   let output;
   try{
-    output=await LayeredRenderer.create(document.createElement('canvas'),{layout:'full',background:snapshot.art,normal:snapshot.maps.normal,surface:snapshot.maps.surface,width:renderer.baseWidth,height:renderer.baseHeight});
+    $('download').disabled=true;
+    const pngLimit=document.body.dataset.edition==='pro'?1024:trialPngLimit;
+    const scale=Math.min(1,pngLimit/Math.max(snapshot.art.width,snapshot.art.height));
+    const width=Math.max(1,Math.round(snapshot.art.width*scale)),height=Math.max(1,Math.round(snapshot.art.height*scale));
+    output=await LayeredRenderer.create(document.createElement('canvas'),{layout:'full',background:snapshot.art,normal:snapshot.maps.normal,surface:snapshot.maps.surface,width,height});
     output.setParameters({strength:snapshot.recipe.strength,richness:snapshot.recipe.richness,light:snapshot.recipe.light});
     output.setLayers(snapshot.view==='original'?{card:0,film:0}:{card:1,film:snapshot.foil?1:0});
     output.render({angle:snapshot.angle});
     const blob=await new Promise((resolve,reject)=>output.canvas.toBlob(value=>value?resolve(value):reject(new Error('PNG encoding failed')),'image/png'));
     const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`luster-look-${snapshot.revision}.png`;link.click();setTimeout(()=>URL.revokeObjectURL(url),60000);
     status(`PNG downloaded · revision ${snapshot.revision}`);
-  }catch(error){status(error.message);}finally{output?.dispose();}
+  }catch(error){showError(error.message);}finally{output?.dispose();$('download').disabled=false;}
 }
 async function downloadHandoff(){
   if(!file)return;
@@ -293,6 +310,7 @@ function startRotation(){
 function updateAngleOnly(){$('angle').value=String(angle);$('angleValue').textContent=`${Number(angle).toFixed(1)}°`;render();}
 
 $('file').addEventListener('change',event=>{if(event.target.files?.[0])loadFile(event.target.files[0]);});
+for(const button of document.querySelectorAll('[data-sample]'))button.addEventListener('click',()=>loadExample(button.dataset.sample));
 for(const button of document.querySelectorAll('[data-template]'))button.addEventListener('click',()=>{
   if(button.dataset.template===currentRecipe().template)return;
   setRecipe({...currentRecipe(),template:button.dataset.template});drawCards();scheduleSave();
@@ -332,6 +350,11 @@ document.addEventListener('keydown',event=>{
   else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
 });
 updateView();updateHistory();window.lusterRestoration=restore();
+const requestedSample=new URL(location.href).searchParams.get('sample');
+if(document.body.dataset.edition!=='pro'&&['poster','card'].includes(requestedSample)){
+  window.lusterRestoration=window.lusterRestoration.then(()=>loadExample(requestedSample));
+  history.replaceState(null,'',location.pathname);
+}
 window.lusterTrial={get state(){return {ready:!!renderer&&!!currentMaps,revision,groups:groups.length,groupIndex,selectedIndex,saved:saved.length,recipe:currentRecipe(),view,foil,angle,size:renderer?[renderer.canvas.width,renderer.canvas.height]:null};}};
 window.lusterController={
   get file(){return file;},get art(){return art;},get sourceDimensions(){return sourceDimensions;},get recipe(){return currentRecipe();},get angle(){return angle;},get mapMode(){return mapEngine.mode;},whenMapsReady,

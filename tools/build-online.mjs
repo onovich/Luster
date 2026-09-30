@@ -8,12 +8,13 @@ const output=path.join(repo,'dist-online');
 if(path.dirname(output)!==repo)throw new Error('Online output must stay inside the repository');
 const shared=[
   'trial.html','trial.css','trial.js','image.js','soft-folds.js','material-maps.js',
-  'map-engine.js','map-worker.js','recipe.js','zip-store.js','trial-handoff.js','source-image.js'
+  'map-engine.js','map-worker.js','recipe.js','zip-store.js','trial-handoff.js','source-image.js','sample-artwork.js'
 ];
 const proOnly=[
   'pro.html','pro.css','pro.js','project.js','export-web.mjs','export-unity.mjs',
   'resource-loader.js','runtime-web.html','runtime-web.js'
 ];
+const publicAssets=['preview-poster.png'];
 const builds=[
   {name:'trial',files:shared,index:'online-trial-index.html',unity:false},
   {name:'pro',files:[...shared,...proOnly],index:'online-pro-index.html',unity:true}
@@ -43,11 +44,14 @@ for(const build of builds){
   const site=path.join(output,build.name),app=path.join(site,'app','workbench');
   await mkdir(app,{recursive:true});
   for(const name of build.files)await copyFile(path.join(workbench,name),path.join(app,name));
+  await mkdir(path.join(site,'assets'),{recursive:true});
+  for(const name of publicAssets)await copyFile(path.join(workbench,'assets',name),path.join(site,'assets',name));
   await copyFile(path.join(workbench,build.index),path.join(site,'index.html'));
   await copyFile(path.join(workbench,'online-entry.css'),path.join(site,'online-entry.css'));
   await copyTree(path.join(repo,'src'),path.join(site,'src'));
   if(build.unity)await copyTree(path.join(workbench,'unity'),path.join(app,'unity'));
   const expected=new Set(['index.html','online-entry.css',...build.files.map(name=>`app/workbench/${name}`)]);
+  for(const name of publicAssets)expected.add(`assets/${name}`);
   const renderer=await collect(path.join(site,'src'));
   for(const name of renderer)expected.add(`src/${name}`);
   if(build.unity){const unity=await collect(path.join(app,'unity'));for(const name of unity)expected.add(`app/workbench/unity/${name}`);}
