@@ -1,9 +1,9 @@
 import {makeMaterialMaps} from './material-maps.js';
 
 export class MapEngine{
-  constructor(limit=24){this.limit=limit;this.cache=new Map();this.worker=null;this.pending=null;this.nextId=0;this.mode='worker';}
+  constructor(limit=24,useWorker=true){this.limit=limit;this.cache=new Map();this.worker=null;this.pending=null;this.nextId=0;this.useWorker=useWorker;this.mode=useWorker?'worker':'main-thread';}
   cancel(){
-    if(this.pending){this.pending.reject(new DOMException('Map request superseded','AbortError'));this.pending=null;}
+    if(this.pending){if(this.pending.timer)clearTimeout(this.pending.timer);this.pending.reject(new DOMException('Map request superseded','AbortError'));this.pending=null;}
     if(this.worker){this.worker.terminate();this.worker=null;}
   }
   remember(key,maps){
@@ -18,6 +18,18 @@ export class MapEngine{
       return Promise.resolve(maps);
     }
     if(this.pending)this.cancel();
+    if(!this.useWorker){
+      const id=++this.nextId;
+      return new Promise((resolve,reject)=>{
+        const timer=setTimeout(()=>{
+          if(this.pending?.id!==id)return;
+          this.pending=null;
+          try{const maps=makeMaterialMaps(input);this.remember(key,maps);resolve(maps);}
+          catch(error){reject(error);}
+        },0);
+        this.pending={id,reject,timer};
+      });
+    }
     if(!this.worker){
       try{this.worker=new Worker(new URL('./map-worker.js',import.meta.url),{type:'module'});}
       catch{this.mode='main-thread';return Promise.resolve().then(()=>{const maps=makeMaterialMaps(input);this.remember(key,maps);return maps;});}

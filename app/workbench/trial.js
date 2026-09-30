@@ -9,7 +9,8 @@ const $=id=>document.getElementById(id);
 let file=null,art=null,renderer=null,currentMaps=null,revision=0,groups=[],groupIndex=-1,selectedIndex=0,saved=[],tab='explore';
 let sourceDimensions=null;
 let project=new ProjectSession(),renderJob=0,loadJob=0,saveJob=0,saveTimer,autoFrame=0,focusBeforeModal=null;
-const mapEngine=new MapEngine(16),thumbnailEngine=new MapEngine(48);
+// Candidate maps are small; keep the main preview worker separate from their queued tasks.
+const mapEngine=new MapEngine(16),thumbnailEngine=new MapEngine(48,false);
 let mapJob=0,mapTask=Promise.resolve();
 let view='material',foil=true,angle=5;
 const maxSide=256;
