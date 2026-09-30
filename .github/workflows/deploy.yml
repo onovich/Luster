@@ -1,4 +1,4 @@
-name: Deploy public Trial to Pages
+name: Deploy material gallery to Pages
 
 on:
   push:
@@ -22,12 +22,12 @@ jobs:
           node-version: '24'
       - name: Check contracts and publication boundary
         run: npm test
-      - name: Build public Trial and showcase
-        run: npm run build
+      - name: Build gallery and verify publication boundary
+        run: npm run build:public
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with:
-          path: dist
+          path: dist-public
 
   deploy:
     needs: build

@@ -13,7 +13,7 @@ const types={'.html':'text/html','.css':'text/css','.js':'text/javascript','.mjs
 const server=createServer(async(request,response)=>{
   try{
     const pathname=decodeURIComponent(new URL(request.url,`http://${host}:${port}`).pathname);
-    if(!pathname.startsWith('/dist/')&&!pathname.startsWith('/dist-online/')&&!pathname.startsWith('/.test-output/online-web-export/')){
+    if(!pathname.startsWith('/dist/')&&!pathname.startsWith('/dist-public/')&&!pathname.startsWith('/dist-online/')&&!pathname.startsWith('/.test-output/online-web-export/')){
       response.writeHead(404).end();return;
     }
     if(pathname.includes('\\')||pathname.split('/').includes('..')){
@@ -42,7 +42,8 @@ function run(file){
 (async()=>{
   await new Promise((resolve,reject)=>server.once('error',reject).listen(port,host,resolve));
   try{
-    if(process.argv.includes('--public-only'))await run('public.cjs');
+    if(process.argv.includes('--gallery-only'))await run('published.cjs');
+    else if(process.argv.includes('--public-only'))await run('public.cjs');
     else if(process.argv.includes('--stress-only'))await run('stress.cjs');
     else{
       if(!process.argv.includes('--layout-only'))await run('browser.cjs');

@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "node tools/build-online.mjs && node tools/build-pages.mjs",
+    "build:public": "node tools/build-pages.mjs --gallery-only && node tests/publication.test.mjs",
+    "test:published": "npm run build:public && node tests/online/run.cjs --gallery-only",
     "test:public": "npm run build && node tests/online/run.cjs --public-only",
     "build:online": "node tools/build-online.mjs",
     "start": "python -m http.server 8798 --bind 127.0.0.1",
