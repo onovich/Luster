@@ -14,10 +14,10 @@ npm run test:online
 
 | Directory | Contents | Release rule |
 | --- | --- | --- |
-| `dist-online/trial/` | Trial page, PNG and handoff export, shared renderer | Candidate public artifact after the Trial policy and release review |
+| `dist-online/trial/` | Trial page, PNG and handoff export, shared renderer | Public Trial: free PNG, longest edge 512px, no watermark |
 | `dist-online/pro/` | Trial resources plus Pro editor, project, Web and Unity exports | Must be served behind server-enforced entitlement |
 
-The build uses an explicit source list and rejects stale files, desktop paths and Pro resources in the Trial artifact. `npm run test:online` runs a real browser against both built roots, verifies downloads and exported Web preview parity, checks for external requests and script errors, and exercises layouts from 320 to 1920 CSS pixels. The same command runs in CI for pull requests targeting `main`. Daily development is on `dev`; pushes without an open PR do not trigger browser CI. Updating an open PR reruns it, cancelling superseded runs. Merging to `main` deploys only the separate demo build (`npm run build`), with deployment contract checks but no repeated full browser suite. See [Git workflow](codex-git-workflow.md).
+The build uses an explicit source list and rejects stale files, desktop paths and Pro resources in the Trial artifact. `npm run test:online` runs a real browser against both built roots, verifies downloads and exported Web preview parity, checks for external requests and script errors, and exercises layouts from 320 to 1920 CSS pixels. The same command runs in CI for pull requests targeting `main`. Daily development is on `dev`; pushes without an open PR do not trigger browser CI. Updating an open PR reruns it, cancelling superseded runs. Merging to `main` deploys the public Trial and preserved showcase (`npm run build`), with deployment contract checks but no repeated full browser suite. See [Git workflow](codex-git-workflow.md).
 
 For local compatibility checks, install the desired Playwright browser, then run `npm run test:online -- --browser=webkit` or `npm run test:stress -- --browser=webkit`. The stress check uses 4096 × 3072 artwork, rapid template and parameter changes, local recovery storage, and keyboard operation of the export dialog. Chromium and WebKit passed these checks locally on 2026-09-28, and WebKit passed again on 2026-10-01. On 2026-10-01, Windows Chrome reported NVIDIA GeForce RTX 5070 Ti and AMD Radeon Graphics through ANGLE/D3D11 in separate runs; the full online suite passed on both physical GPUs, and the large-artwork stress check passed on AMD. Both GPUs are in one computer, so this does not cover a second device.
 
@@ -29,9 +29,13 @@ B14 now caches its 64 fixed CIE samples in a nearest-filtered float texture when
 
 Playwright WebKit is not branded Safari, and viewport emulation is not a physical mobile test; CI and local timings are not a device performance budget.
 
-## Before a public workbench release
+## Public Trial and next work
 
-- Decide Trial PNG size, watermark and permitted use. The current Trial downloads an unwatermarked PNG preview.
+The public build publishes a product landing, original poster/card examples and the Trial workbench. Trial PNGs are free to use in users' projects with artwork they own or have permission to use. Generated examples are original canvas artwork; no third-party images are added. Pro is clearly described as in development and is excluded from the public artifact. `npm run test:public` checks the actual deployment tree, example download dimensions, responsive landing, recovery and Pro exclusion. GitHub Pages host logging is disclosed separately from local artwork processing.
+
+Remaining work is Pro access, accounts and payment, export licensing, and acceptance on physical Safari/mobile and another computer. The Trial size/watermark/PNG-use decisions are complete.
+
+- Trial policy is set: free PNG up to 512px, without watermark; PNG use is described on the landing.
 - Confirm source and artwork distribution rights and write user-facing terms for project and export packages. [Asset notes](assets.md) cover the existing demo artwork, not a customer license.
 - Choose hosting and implement Pro login, entitlement checks, and resource delivery. Hiding a static link or button is not access control.
 - Review the privacy notice against the chosen host. Local artwork processing is covered by the current browser tests; hosting logs, account data and payment data depend on the eventual service.
