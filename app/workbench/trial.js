@@ -104,15 +104,18 @@ function updateHistory(){
   $('exploreTab').setAttribute('aria-selected',String(tab==='explore'));
   $('savedTab').setAttribute('aria-selected',String(tab==='saved'));
 }
-async function thumbnails(recipes){
+async function thumbnails(recipes,onProgress=()=>{}){
   if(!art||!recipes.length)return [];
   const [width,height]=dimensions(132),[mapWidth,mapHeight]=dimensions(96);
   const placeholder=makeSoftFolds({width:32,height:32});
+  onProgress('Preparing candidate renderer…');
   const output=await LayeredRenderer.create(document.createElement('canvas'),{layout:'full',background:art,normal:placeholder.normal,surface:placeholder.surface,width,height});
   try{
     const urls=[];
-    for(const recipe of recipes){
+    for(const [index,recipe] of recipes.entries()){
+      onProgress(`Generating candidate ${index+1}/${recipes.length}…`);
       const maps=await thumbnailEngine.generate(mapInput(mapWidth,mapHeight,recipe));
+      onProgress(`Rendering candidate ${index+1}/${recipes.length}…`);
       output.setParameters({strength:recipe.strength,richness:recipe.richness,light:recipe.light});
       output.setNormal(maps.normal);output.setSurface(maps.surface);output.setLayers({card:1,film:1});output.render({angle:5});
       urls.push(output.canvas.toDataURL('image/png'));
@@ -129,7 +132,7 @@ async function drawCards(){
   if(!list.length){$('cards').textContent=tab==='saved'?'No saved looks yet. Save a finish from Explore.':'No candidates yet.';return;}
   status('Generating candidate previews…');
   try{
-    const urls=await thumbnails(list);
+    const urls=await thumbnails(list,message=>{if(job===renderJob)status(message);});
     if(job!==renderJob)return;
     const fragment=document.createDocumentFragment();
     list.forEach((recipe,index)=>{
