@@ -25,3 +25,5 @@ body:has(.workspace) .center{background:var(--luster-blue)}.canvasWrap{backgroun
 .sidebar a{color:inherit;text-underline-offset:4px}.sidebar a:focus-visible{outline:3px solid #ffe27d;outline-offset:4px}
 
 .siteHeader{left:auto;right:auto;top:auto;margin:0;width:100%;box-sizing:border-box}.trialNotes a{color:inherit;text-underline-offset:3px}h1.srOnly,h2.srOnly{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+@media(min-width:701px){.galleryHome main{width:min(100%,calc(150svh - 120px))}}@media(max-width:700px){.galleryHome main{min-height:calc(100svh - 112px)}}

@@ -19,6 +19,7 @@ const base=process.env.LUSTER_PUBLIC_URL||'http://127.0.0.1:8798/dist/';
    await page.setViewportSize({width,height:900});await page.goto(base);
    await page.waitForFunction(()=>window.foilDemo?.state().ready,undefined,{timeout:60000});
    await navigation('Home');
+   if(width===1440)assert(await page.locator('.console').evaluate(element=>element.getBoundingClientRect().bottom<=innerHeight),'Gallery controls must remain in the desktop viewport');
    assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`Gallery overflow at ${width}`);
    await page.screenshot({path:path.join(output,`gallery-${width}.png`),fullPage:true});
    await page.getByRole('link',{name:'Product',exact:true}).click();
