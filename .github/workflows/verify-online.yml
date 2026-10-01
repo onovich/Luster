@@ -1,11 +1,11 @@
 name: Verify browser workbench
 
 on:
-  pull_request:
-    branches: [main]
+  workflow_call:
+  workflow_dispatch:
 
 concurrency:
-  group: workbench-pr-${{ github.event.pull_request.number }}
+  group: workbench-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -15,6 +15,7 @@ jobs:
   verify:
     name: Verify ${{ matrix.browser }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     env:
       LUSTER_USE_BUNDLED_CHROMIUM: '1'
       LUSTER_FIREFOX_HEADED: ${{ matrix.browser == 'firefox' && '1' || '0' }}

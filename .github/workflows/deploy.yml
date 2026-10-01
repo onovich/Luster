@@ -1,8 +1,9 @@
 name: Deploy material gallery to Pages
 
 on:
-  push:
+  pull_request:
     branches: [main]
+    types: [closed]
   workflow_dispatch:
 
 permissions:
@@ -13,13 +14,21 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  verify:
+    if: >-
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true) ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
+    uses: ./.github/workflows/verify-online.yml
+
   build:
+    needs: verify
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
+      - run: npm ci
       - name: Check contracts and publication boundary
         run: npm test
       - name: Build gallery and verify publication boundary
