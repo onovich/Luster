@@ -1,9 +1,8 @@
 name: Deploy material gallery to Pages
 
 on:
-  pull_request:
+  push:
     branches: [main]
-    types: [closed]
   workflow_dispatch:
 
 permissions:
@@ -14,10 +13,29 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      approved: ${{ steps.check.outputs.approved }}
+    steps:
+      - name: Require a merged release PR or a manual main release
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ] && [ "$GITHUB_REF" = refs/heads/main ]; then
+            echo 'approved=true' >> "$GITHUB_OUTPUT"
+          elif [ "$GITHUB_EVENT_NAME" = push ]; then
+            approved=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" --jq "any(.[]; .merged_at != null and .base.ref == \"main\" and .merge_commit_sha == \"$GITHUB_SHA\")")
+            echo "approved=$approved" >> "$GITHUB_OUTPUT"
+          fi
+
   verify:
-    if: >-
-      (github.event_name == 'pull_request' && github.event.pull_request.merged == true) ||
-      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
+    needs: release
+    if: needs.release.outputs.approved == 'true'
     uses: ./.github/workflows/verify-online.yml
 
   build:
