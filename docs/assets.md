@@ -3,7 +3,7 @@
 The project owner permits reuse here of the example images, interactions and book presentation. That permission does not publish the originating application's business model or grant downstream users a general artwork license.
 
 - `book-exhibit.png` and `exhibit-background.png`: generated from the original cobalt concept, retaining the binder silhouette, slight page perspective, metal rings and studio composition. The binder has transparent outer pixels; the studio backdrop remains stationary.
-- `art-orbit`, `art-silk`, `art-facet`, `art-grain`, `art-diagonal`: generated decorative prints distributed across eight pockets. Their printed spectral colors are static artwork; the independent live film adds angle-dependent reflections. Reflection-only inspection isolates the live effect.
+- `art-orbit`, `art-silk`, `art-facet`, `art-grain`, `art-diagonal`: generated decorative prints distributed across eight pockets. Their spectral colors are baked into the reference artwork. The layered renderer adds angle-dependent card relighting and an independent film response; see [card materials](card-materials.md). Reflection-only inspection isolates the live effect.
 - Earlier `demo/assets/images/book-cobalt.png`: generated cobalt cover, blank ivory pages and four chrome rings on a transparent background. These static surfaces move together; cards and real-time film remain independent. No iridescence is baked into the binder. Earlier `book-cover`, `book-pages`, `book-shadow` and ring layers remain as source artwork, but are not loaded by the current demo.
 - Earlier `card-circle.png`, `card-semicircle.png`, `card-diagonal.png`: generated matte geometric prints; no baked foil, labels or game symbols. `sleeve.svg` supplies neutral ivory backing for empty pockets.
 - Legacy `base-0.png` through `base-2.png`: illustrative card samples; baked notification dots were removed before publication. Visible illustration labels are sample artwork, not public application entities or a game data schema.
@@ -22,10 +22,10 @@ No open-source license is currently included. Code, artwork and normal fields mu
 
 The demo loads lossless WebP copies of the exhibit binder, studio background and five prints. Repeated designs share URLs. Run `npm run assets:images` (Python with Pillow) to regenerate them; `python tests/assets.py` verifies exact decoded RGBA equality against all twenty-two preserved PNG originals, including earlier iterations.
 
-The exhibit starts at a frontal optical angle with reflection strength 0.14 and one card lifted, unless reduced motion is requested. These are presentation defaults; Reset restores the unmodified B14 preset. The shader algorithms and normal fields remain unchanged.
+The exhibit uses B14 with reflection strength 0.3 at startup. Cards start at rest and slide upward only when hovered, remaining parallel to the sleeve. The sleeve normal field stays fixed.
 
 Card hover lifts only the printed card by 55/228 of the pocket height, with a 160 ms cubic-out entrance and linear return. The pocket and its normal field stay fixed. Reduced-motion preferences disable hover movement.
 
-## Public Trial examples
+## Local Trial examples
 
-`app/workbench/sample-artwork.js` draws original poster and game-card examples using canvas primitives and system Arial. `app/workbench/assets/preview-poster.png` is a Luster render of the poster. No external artwork or font download is involved. The public Trial grants use of downloaded PNGs in users' projects with authorized artwork; it does not grant redistribution rights to Luster source or shaders.
+`app/workbench/sample-artwork.js` draws original poster and game-card examples using canvas primitives and system Arial. `app/workbench/assets/preview-poster.png` is a Luster render of the poster. No external artwork or font download is involved. The local Trial UI describes permitted use of downloaded PNGs in users' projects with authorized artwork; it does not grant redistribution rights to Luster source or shaders.

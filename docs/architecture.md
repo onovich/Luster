@@ -1,6 +1,6 @@
 # Architecture
 
-Luster is a small material library with a standalone visual laboratory. Keep native ES modules and static HTTP delivery until a concrete consumer requires packaging or a framework adapter.
+Luster contains a material library, a public gallery and locally previewable browser workbenches. Keep native ES modules and static HTTP delivery until a concrete consumer requires packaging or a framework adapter.
 
 ## Dependency direction
 
@@ -28,6 +28,10 @@ flowchart LR
 | `src/shaders/` | Spectral equations and composition; no business state or time-driven texture motion |
 | `src/webgl/` | Shader loading, GPU resources, texture upload and explicit rendering/disposal |
 | `demo/` | Book/material views, controls, pointer and keyboard presentation |
+| `app/workbench/` | Local Trial and Pro editors, image processing and export flows |
+| `src/site-*.js`, `src/site.css` | Shared navigation, English/Chinese UI and view lifecycle |
+| `dist-public/` | Generated gallery-only Pages artifact |
+| `dist/`, `dist-online/` | Generated full local preview and standalone workbench builds |
 | `demo/assets/images/` | Replaceable example artwork |
 | `demo/assets/normals/` | Packed normal bytes, independent of image decoding |
 | `tests/fixtures/approved/` | Public optical baselines, presets, atlas and minimal reference runners |
@@ -58,7 +62,7 @@ Both the public fixtures and the local originals were checked against the curren
 1. Keep adapters outside `core`: a React wrapper or another host should own canvas lifecycle and input decoding.
 2. Add another renderer backend only when needed; share parameter semantics and normal contracts, and retain backend-specific shaders and resources.
 3. For many instances, introduce a shared-context renderer with atlas/viewport management after profiling. Eight demo contexts are not a production scaling strategy.
-4. Add packaging, TypeScript declarations or a build system when an actual distribution requirement justifies them. They are not current features.
+4. Add library packaging or TypeScript declarations when a consumer requires them. Static site build scripts already produce separate public and local-preview artifacts.
 
 Deployment setup: [GitHub Pages and custom domain](deployment.md).
 
